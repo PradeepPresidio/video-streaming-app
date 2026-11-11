@@ -10,3 +10,4 @@ local.properties
 *.iml
 .kotlin/
 captures/
+tools/.cache/
