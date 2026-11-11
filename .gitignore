@@ -1,0 +1,4 @@
+.claude/state/
+verification/
+app/src/main/assets/media/
+*.bak

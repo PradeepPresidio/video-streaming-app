@@ -1,0 +1,54 @@
+{
+  "env": {
+    "HANDOFF_SOFT_PCT": "95",
+    "HANDOFF_HARD_PCT": "99"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/statusline.sh",
+    "refreshInterval": 60
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/usage-guard.sh" }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "matcher": "rate_limit",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/handoff-commit.sh limit-hit" }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew *)",
+      "Bash(adb *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push*)",
+      "Bash(bash scripts/keep-awake.sh *)",
+      "Bash(bash tools/prepare_media.sh*)",
+      "Bash(ffmpeg *)",
+      "Bash(ffprobe *)",
+      "Bash(bash .claude/hooks/handoff-commit.sh *)",
+      "Bash(touch .claude/state/all_done)"
+    ]
+  }
+}
