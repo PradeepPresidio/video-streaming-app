@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.reelbox.container
+import com.example.reelbox.data.MyListRepository
 import com.example.reelbox.data.ProgressRepository
 import com.example.reelbox.data.catalog.CatalogRepository
 import com.example.reelbox.data.catalog.Title
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class DetailsUiState(
     val title: Title? = null,
@@ -36,6 +38,7 @@ data class DetailsUiState(
 class DetailsViewModel(
     catalogRepository: CatalogRepository,
     progressRepository: ProgressRepository,
+    private val myListRepository: MyListRepository,
     savedState: SavedStateHandle,
 ) : ViewModel() {
     private val titleId: String = requireNotNull(savedState["titleId"])
@@ -45,7 +48,8 @@ class DetailsViewModel(
         flow { emit(catalogRepository.catalog()) },
         progressRepository.entries.onStart { emit(emptyList()) },
         selectedSeason,
-    ) { catalog, entries, season ->
+        myListRepository.titleIds.onStart { emit(emptyList()) },
+    ) { catalog, entries, season, myList ->
         val title = catalog.title(titleId) ?: return@combine DetailsUiState(notFound = true, loading = false)
         val mine = entries.filter { it.titleId == titleId }
         DetailsUiState(
@@ -55,14 +59,19 @@ class DetailsViewModel(
             moreLikeThis = Recommendations.moreLikeThis(catalog, title),
             progress = mine.filter { !it.finished || it.positionMs > 0 }.associate { it.mediaId to it.fraction },
             playTarget = ProgressRules.playTarget(catalog, title, mine),
+            inMyList = titleId in myList,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DetailsUiState())
 
     fun selectSeason(season: Int) { selectedSeason.value = season }
 
+    fun toggleMyList() {
+        viewModelScope.launch { myListRepository.toggle(titleId) }
+    }
+
     companion object {
         val Factory = viewModelFactory {
-            initializer { DetailsViewModel(container.catalogRepository, container.progressRepository, createSavedStateHandle()) }
+            initializer { DetailsViewModel(container.catalogRepository, container.progressRepository, container.myListRepository, createSavedStateHandle()) }
         }
     }
 }

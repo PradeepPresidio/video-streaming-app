@@ -48,6 +48,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -68,7 +70,6 @@ fun DetailsScreen(
     onBack: () -> Unit,
     onPlay: (title: Title, episode: Episode?) -> Unit,
     onOpenTitle: (Title) -> Unit,
-    onToggleMyList: (Title) -> Unit = {},
     onDownload: (Title) -> Unit = {},
     vm: DetailsViewModel = viewModel(factory = DetailsViewModel.Factory),
 ) {
@@ -79,7 +80,7 @@ fun DetailsScreen(
         title == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         else -> LazyColumn(Modifier.fillMaxSize().testTag("details:${title.id}")) {
             item(key = "header") {
-                DetailsHeader(title, state, onBack, onPlay = { onPlay(title, state.playTarget?.episode) }, onToggleMyList = { onToggleMyList(title) }, onDownload = { onDownload(title) })
+                DetailsHeader(title, state, onBack, onPlay = { onPlay(title, state.playTarget?.episode) }, onToggleMyList = vm::toggleMyList, onDownload = { onDownload(title) })
             }
             if (title.isSeries) {
                 item(key = "episodes-header") { EpisodesHeader(title.seasons, state.selectedSeason, vm::selectSeason) }
@@ -151,7 +152,10 @@ private fun DetailsHeader(
                 )
             }
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                ActionButton(if (state.inMyList) Icons.Filled.Check else Icons.Filled.Add, "My List", "details:mylist", onToggleMyList)
+                ActionButton(
+                    if (state.inMyList) Icons.Filled.Check else Icons.Filled.Add, "My List", "details:mylist", onToggleMyList,
+                    description = if (state.inMyList) "In My List" else "Add to My List",
+                )
                 ActionButton(Icons.Filled.Download, "Download", "details:download", onDownload)
             }
             Text(title.description, modifier = Modifier.padding(top = 8.dp).testTag("details:description"))
@@ -173,9 +177,10 @@ private fun playLabel(title: Title, target: PlayTarget?): String {
 }
 
 @Composable
-private fun ActionButton(icon: ImageVector, label: String, tag: String, onClick: () -> Unit) {
+private fun ActionButton(icon: ImageVector, label: String, tag: String, onClick: () -> Unit, description: String = label) {
     Column(
-        Modifier.clip(RoundedCornerShape(6.dp)).clickable(onClick = onClick).padding(8.dp).testTag(tag),
+        Modifier.clip(RoundedCornerShape(6.dp)).clickable(onClick = onClick).padding(8.dp).testTag(tag)
+            .semantics(mergeDescendants = true) { contentDescription = description },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(icon, null, tint = Color.White)

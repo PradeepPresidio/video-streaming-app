@@ -41,6 +41,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -82,7 +84,7 @@ fun HomeScreen(
     LazyColumn(Modifier.fillMaxSize().testTag("home"), state = rememberLazyListState()) {
         home.hero?.let { hero ->
             item(key = "hero") {
-                HeroBanner(hero, inMyList = false, onPlay = { onPlay(hero) }, onToggleMyList = {}, onOpen = { onOpenTitle(hero) })
+                HeroBanner(hero, inMyList = hero.id in state.myListIds, onPlay = { onPlay(hero) }, onToggleMyList = { vm.toggleMyList(hero.id) }, onOpen = { onOpenTitle(hero) })
             }
         }
         items(home.rows, key = { it.key }) { row ->
@@ -137,7 +139,11 @@ fun HeroBanner(hero: Title, inMyList: Boolean, onPlay: () -> Unit, onToggleMyLis
                 Icon(Icons.Filled.PlayArrow, null)
                 Text("Play", fontWeight = FontWeight.Bold)
             }
-            OutlinedButton(onClick = onToggleMyList, modifier = Modifier.weight(1f).testTag("hero:mylist")) {
+            OutlinedButton(
+                onClick = onToggleMyList,
+                modifier = Modifier.weight(1f).testTag("hero:mylist")
+                    .semantics { contentDescription = if (inMyList) "In My List" else "Add to My List" },
+            ) {
                 Icon(if (inMyList) Icons.Filled.Check else Icons.Filled.Add, null, tint = Color.White)
                 Text("My List", color = Color.White)
             }

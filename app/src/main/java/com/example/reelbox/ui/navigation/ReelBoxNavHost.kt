@@ -32,6 +32,7 @@ import com.example.reelbox.player.PlayerScreen
 import com.example.reelbox.ui.details.DetailsScreen
 import com.example.reelbox.ui.downloads.DownloadsScreen
 import com.example.reelbox.ui.home.HomeScreen
+import com.example.reelbox.ui.mylist.MyListScreen
 import com.example.reelbox.ui.profile.ProfileScreen
 import com.example.reelbox.ui.search.SearchScreen
 import com.example.reelbox.ui.settings.CreditsScreen
@@ -71,7 +72,8 @@ fun ReelBoxNavHost(nav: NavHostController) {
                 }
                 composable(Routes.SEARCH) { SearchScreen() }
                 composable(Routes.DOWNLOADS) { DownloadsScreen() }
-                composable(Routes.PROFILE) { ProfileScreen(onSettings = { nav.navigate(Routes.SETTINGS) }) }
+                composable(Routes.PROFILE) { ProfileScreen(onMyList = { nav.navigate(Routes.MY_LIST) }, onSettings = { nav.navigate(Routes.SETTINGS) }) }
+                composable(Routes.MY_LIST) { MyListScreen(onBack = { nav.popBackStack() }, onOpenTitle = openDetails) }
                 composable(Routes.SETTINGS) { SettingsScreen(onBack = { nav.popBackStack() }, onCredits = { nav.navigate(Routes.CREDITS) }) }
                 composable(Routes.CREDITS) { CreditsScreen(onBack = { nav.popBackStack() }) }
                 composable(

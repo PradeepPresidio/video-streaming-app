@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -16,10 +17,16 @@ import androidx.compose.ui.platform.testTag
 import com.example.reelbox.ui.components.SimpleTopBar
 
 @Composable
-fun ProfileScreen(onSettings: () -> Unit) {
+fun ProfileScreen(onMyList: () -> Unit, onSettings: () -> Unit) {
     val colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background)
     Column(Modifier.fillMaxSize().testTag("profile")) {
         SimpleTopBar("Profile")
+        ListItem(
+            headlineContent = { Text("My List") },
+            leadingContent = { Icon(Icons.Filled.Bookmarks, null) },
+            modifier = Modifier.clickable(onClick = onMyList).testTag("profile:mylist"),
+            colors = colors,
+        )
         ListItem(
             headlineContent = { Text("Settings") },
             leadingContent = { Icon(Icons.Filled.Settings, null) },

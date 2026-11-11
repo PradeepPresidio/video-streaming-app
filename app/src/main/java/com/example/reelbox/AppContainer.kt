@@ -3,6 +3,7 @@ package com.example.reelbox
 import android.content.Context
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.example.reelbox.data.MyListRepository
 import com.example.reelbox.data.ProfileRepository
 import com.example.reelbox.data.ProgressRepository
 import com.example.reelbox.data.catalog.CatalogRepository
@@ -25,6 +26,7 @@ class AppContainer(context: Context) {
     val catalogRepository = CatalogRepository(appContext)
     val profileRepository by lazy { ProfileRepository(database.profiles(), settings) }
     val progressRepository by lazy { ProgressRepository(database.progress(), profileRepository, catalogRepository) }
+    val myListRepository by lazy { MyListRepository(database.myList(), profileRepository) }
 
     init {
         appScope.launch { profileRepository.ensureDefaultProfile() }
