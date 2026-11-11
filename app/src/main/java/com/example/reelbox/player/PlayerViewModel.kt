@@ -23,7 +23,10 @@ import com.example.reelbox.data.catalog.CatalogRepository
 import com.example.reelbox.data.catalog.Episode
 import com.example.reelbox.data.catalog.MediaInfo
 import com.example.reelbox.data.catalog.Title
+import com.example.reelbox.data.ProgressRepository
 import com.example.reelbox.domain.PlayerRules
+import com.example.reelbox.domain.ProgressRules
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -60,6 +63,9 @@ data class PlayerUiState(
 class PlayerViewModel(
     app: Application,
     private val catalogRepository: CatalogRepository,
+    private val progressRepository: ProgressRepository,
+    /** App-wide scope so the final save on exit completes after this ViewModel is cleared. */
+    private val appScope: CoroutineScope,
     private val savedState: SavedStateHandle,
 ) : ViewModel() {
     val player: ExoPlayer = ExoPlayer.Builder(app)
@@ -70,11 +76,15 @@ class PlayerViewModel(
     private val _state = MutableStateFlow(PlayerUiState())
     val state: StateFlow<PlayerUiState> = _state.asStateFlow()
     private var catalog: Catalog? = null
+    private var lastSavedAt = 0L
 
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) = refresh()
         override fun onPlaybackStateChanged(playbackState: Int) {
-            if (playbackState == Player.STATE_ENDED) maybeAutoplayNext()
+            if (playbackState == Player.STATE_ENDED) {
+                saveProgress()
+                maybeAutoplayNext()
+            }
         }
     }
 
@@ -86,7 +96,10 @@ class PlayerViewModel(
             val episodeId = savedState.get<String>(ARG_EPISODE)?.takeIf { it.isNotEmpty() }
             val episode = if (title.isSeries) (episodeId?.let(catalog::episode) ?: title.episodes.first()) else null
             setSubtitles(savedState[KEY_SUBS] ?: false)
-            load(NowPlaying(title, episode), startMs = savedState.get<Long>(KEY_POSITION) ?: 0L)
+            // Resume: a position kept across process death wins, else the saved progress (unless finished).
+            val startMs = savedState.get<Long>(KEY_POSITION)
+                ?: ProgressRules.startPosition(progressRepository.get(episode?.id ?: title.id))
+            load(NowPlaying(title, episode), startMs = startMs)
         }
         viewModelScope.launch {
             var tick = 0
@@ -95,6 +108,7 @@ class PlayerViewModel(
                 maybeAutoplayNext()
                 // Debug builds log playback state once a second; adb-driven checks read it from logcat.
                 if (BuildConfig.DEBUG && tick++ % 4 == 0) logState()
+                if (player.isPlaying && System.currentTimeMillis() - lastSavedAt >= ProgressRules.SAVE_INTERVAL_MS) saveProgress()
                 delay(250)
             }
         }
@@ -206,6 +220,7 @@ class PlayerViewModel(
 
     private fun playEpisode(ep: Episode) {
         val title = _state.value.nowPlaying?.title ?: return
+        saveProgress()
         savedState[ARG_EPISODE] = ep.id
         savedState[KEY_POSITION] = 0L
         load(NowPlaying(title, ep), 0L)
@@ -214,11 +229,25 @@ class PlayerViewModel(
     fun setAutoplayNext(enabled: Boolean) = _state.update { it.copy(autoplayNext = enabled) }
 
     /** Remember the position so a recreated ViewModel (process death) resumes where it was. */
-    fun rememberPosition() { savedState[KEY_POSITION] = player.currentPosition }
+    fun rememberPosition() {
+        savedState[KEY_POSITION] = player.currentPosition
+        saveProgress()
+    }
+
+    /** Persists the current position (every 5 s while playing, on stop, at the end, on exit). */
+    fun saveProgress() {
+        val np = _state.value.nowPlaying ?: return
+        val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: np.media.durationMs
+        val position = if (player.playbackState == Player.STATE_ENDED) duration else player.currentPosition
+        lastSavedAt = System.currentTimeMillis()
+        if (BuildConfig.DEBUG) Log.d(TAG, "save id=${np.episode?.id ?: np.title.id} pos=$position dur=$duration")
+        appScope.launch { progressRepository.save(np.title.id, np.episode?.id, position, duration) }
+    }
 
     fun pause() { player.pause() }
 
     override fun onCleared() {
+        saveProgress()
         player.removeListener(listener)
         player.release()
     }
@@ -230,7 +259,10 @@ class PlayerViewModel(
         private const val KEY_POSITION = "position"
         private const val KEY_SUBS = "subtitles"
         val Factory = viewModelFactory {
-            initializer { PlayerViewModel(this[APPLICATION_KEY]!!, container.catalogRepository, createSavedStateHandle()) }
+            initializer {
+                val c = container
+                PlayerViewModel(this[APPLICATION_KEY]!!, c.catalogRepository, c.progressRepository, c.appScope, createSavedStateHandle())
+            }
         }
     }
 }

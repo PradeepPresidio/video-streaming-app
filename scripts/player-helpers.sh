@@ -15,3 +15,5 @@ lastf() { adb logcat -d -s ReelBoxPlayer:D | grep ' state ' | tail -1 | grep -oE
 laststate() { adb logcat -d -s ReelBoxPlayer:D | grep ' state ' | tail -1 | sed 's/.*state //'; }
 # coordinates of a node from the last (paused) dump
 xy() { tr '>' '\n' < $X | grep -E "resource-id=\"$1\"" | head -1 | sed -E 's/.*bounds="\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\]".*/\1 \2 \3 \4/' | awk '{printf "%d %d", ($1+$3)/2, ($2+$4)/2}'; }
+# centre of poster:<id> inside row:<rowKey> from the last dump, e.g. rowposter trending sintel
+rowposter() { tr '>' '\n' < $X | awk -v r="row:$1" -v p="poster:$2\"" 'index($0,r){f=1} f && index($0,p){print; exit}' | sed -E 's/.*bounds="\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\]".*/\1 \2 \3 \4/' | awk '{printf "%d %d", ($1+$3)/2, ($2+$4)/2}'; }

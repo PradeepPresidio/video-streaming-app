@@ -57,7 +57,11 @@ fun ReelBoxNavHost(nav: NavHostController) {
         Box(Modifier.fillMaxSize().padding(if (route == Routes.PLAYER) androidx.compose.foundation.layout.PaddingValues() else padding)) {
             NavHost(nav, startDestination = Routes.HOME) {
                 val openDetails: (Title) -> Unit = { t -> nav.navigate(Routes.details(t.id)) }
-                composable(Routes.HOME) { HomeScreen(onOpenTitle = openDetails, onPlay = { t -> nav.navigate(Routes.player(t.id)) }) }
+                composable(Routes.HOME) { HomeScreen(
+                        onOpenTitle = openDetails,
+                        onPlay = { t -> nav.navigate(Routes.player(t.id)) },
+                        onResume = { item -> nav.navigate(Routes.player(item.title.id, item.episode?.id)) },
+                    ) }
                 composable(Routes.DETAILS, arguments = listOf(navArgument("titleId") { type = NavType.StringType })) {
                     DetailsScreen(
                         onBack = { nav.popBackStack() },

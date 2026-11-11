@@ -60,6 +60,7 @@ import com.example.reelbox.ui.components.AssetImage
 import com.example.reelbox.ui.components.CenteredMessage
 import com.example.reelbox.ui.components.MaturityBadge
 import com.example.reelbox.ui.components.TitleRow
+import com.example.reelbox.domain.PlayTarget
 import com.example.reelbox.util.formatDurationShort
 
 @Composable

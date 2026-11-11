@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,8 +29,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -43,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reelbox.R
 import com.example.reelbox.data.catalog.Title
+import com.example.reelbox.domain.ContinueItem
 import com.example.reelbox.ui.components.AssetImage
 import com.example.reelbox.ui.components.MaturityBadge
 import com.example.reelbox.ui.components.TitleRow
@@ -51,13 +57,27 @@ import com.example.reelbox.ui.components.TitleRow
 fun HomeScreen(
     onOpenTitle: (Title) -> Unit,
     onPlay: (Title) -> Unit,
+    onResume: (ContinueItem) -> Unit,
     vm: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
-    val content by vm.content.collectAsStateWithLifecycle()
-    val home = content
-    if (home == null) {
+    val uiState by vm.state.collectAsStateWithLifecycle()
+    val state = uiState
+    if (state == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
+    }
+    val home = state.content
+    var removeCandidate by remember { mutableStateOf<Title?>(null) }
+    removeCandidate?.let { t ->
+        AlertDialog(
+            onDismissRequest = { removeCandidate = null },
+            title = { Text(t.title) },
+            text = { Text("Remove from Continue Watching?") },
+            confirmButton = {
+                TextButton(onClick = { vm.removeFromContinueWatching(t.id); removeCandidate = null }) { Text("Remove") }
+            },
+            dismissButton = { TextButton(onClick = { removeCandidate = null }) { Text("Cancel") } },
+        )
     }
     LazyColumn(Modifier.fillMaxSize().testTag("home"), state = rememberLazyListState()) {
         home.hero?.let { hero ->
@@ -66,7 +86,18 @@ fun HomeScreen(
             }
         }
         items(home.rows, key = { it.key }) { row ->
-            TitleRow(row.label, row.titles, onTitleClick = onOpenTitle, progress = row.progress, testTag = "row:${row.key}")
+            if (row.key == "continue") {
+                // Continue Watching cards resume playback directly; long-press offers Remove.
+                TitleRow(
+                    row.label, row.titles,
+                    onTitleClick = { t -> state.continueItems[t.id]?.let(onResume) },
+                    progress = row.progress,
+                    onLongClick = { t -> removeCandidate = t },
+                    testTag = "row:${row.key}",
+                )
+            } else {
+                TitleRow(row.label, row.titles, onTitleClick = onOpenTitle, progress = row.progress, testTag = "row:${row.key}")
+            }
         }
         item { Spacer(Modifier.height(16.dp)) }
     }
