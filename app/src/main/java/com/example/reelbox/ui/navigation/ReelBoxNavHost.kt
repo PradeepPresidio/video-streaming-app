@@ -29,6 +29,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.reelbox.data.catalog.Title
 import com.example.reelbox.player.PlayerScreen
+import com.example.reelbox.ui.details.DetailsScreen
 import com.example.reelbox.ui.downloads.DownloadsScreen
 import com.example.reelbox.ui.home.HomeScreen
 import com.example.reelbox.ui.profile.ProfileScreen
@@ -55,9 +56,15 @@ fun ReelBoxNavHost(nav: NavHostController) {
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(if (route == Routes.PLAYER) androidx.compose.foundation.layout.PaddingValues() else padding)) {
             NavHost(nav, startDestination = Routes.HOME) {
-                // Until the details page exists (R3), a poster starts playback directly.
-                val play: (Title) -> Unit = { t -> nav.navigate(Routes.player(t.id)) }
-                composable(Routes.HOME) { HomeScreen(onOpenTitle = play, onPlay = play) }
+                val openDetails: (Title) -> Unit = { t -> nav.navigate(Routes.details(t.id)) }
+                composable(Routes.HOME) { HomeScreen(onOpenTitle = openDetails, onPlay = { t -> nav.navigate(Routes.player(t.id)) }) }
+                composable(Routes.DETAILS, arguments = listOf(navArgument("titleId") { type = NavType.StringType })) {
+                    DetailsScreen(
+                        onBack = { nav.popBackStack() },
+                        onPlay = { t, ep -> nav.navigate(Routes.player(t.id, ep?.id)) },
+                        onOpenTitle = openDetails,
+                    )
+                }
                 composable(Routes.SEARCH) { SearchScreen() }
                 composable(Routes.DOWNLOADS) { DownloadsScreen() }
                 composable(Routes.PROFILE) { ProfileScreen(onSettings = { nav.navigate(Routes.SETTINGS) }) }
