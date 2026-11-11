@@ -77,7 +77,7 @@ fun ReelBoxNavHost(nav: NavHostController) {
                         navArgument("episodeId") { type = NavType.StringType; defaultValue = "" },
                         navArgument("local") { type = NavType.BoolType; defaultValue = false },
                     ),
-                ) { PlayerScreen() }
+                ) { PlayerScreen(onBack = { nav.popBackStack() }) }
             }
         }
     }

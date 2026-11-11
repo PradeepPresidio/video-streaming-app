@@ -1,8 +1,11 @@
 package com.example.reelbox
 
+import android.app.PictureInPictureParams
 import android.content.pm.ActivityInfo
+import android.util.Rational
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,8 +39,22 @@ import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalComposeUiApi::class)
 class MainActivity : ComponentActivity() {
+    /** True while the player is on screen; Home then shrinks playback into picture-in-picture. */
+    var pipEnabled = false
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (pipEnabled && !isInPictureInPictureMode) {
+            enterPictureInPictureMode(
+                PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build(),
+            )
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_ReelBox)
+        // Edge-to-edge so Compose receives real system-bar/cutout insets (the player keeps its controls inside them).
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         // Phone portrait browsing; PlayerScreen switches to landscape while it is shown.
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
