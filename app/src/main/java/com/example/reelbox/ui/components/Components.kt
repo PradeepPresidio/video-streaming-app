@@ -37,11 +37,18 @@ import com.example.reelbox.data.catalog.AssetUris
 import com.example.reelbox.data.catalog.Title
 
 @Composable
-fun AssetImage(path: String, contentDescription: String?, modifier: Modifier = Modifier, contentScale: ContentScale = ContentScale.Crop) {
+fun AssetImage(
+    path: String,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Crop,
+    alignment: Alignment = Alignment.Center,
+) {
     AsyncImage(
         model = AssetUris.image(path),
         contentDescription = contentDescription,
         contentScale = contentScale,
+        alignment = alignment,
         modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant),
     )
 }
@@ -53,7 +60,7 @@ fun PosterCard(
     title: Title,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    width: Dp = 112.dp,
+    width: Dp = 88.dp,
     progress: Float? = null,
     onLongClick: (() -> Unit)? = null,
 ) {
@@ -90,9 +97,9 @@ fun TitleRow(
     Column(modifier.fillMaxWidth().testTag(testTag)) {
         Text(
             label,
-            style = MaterialTheme.typography.titleMedium,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp),
+            modifier = Modifier.padding(start = 16.dp, top = 10.dp, bottom = 6.dp),
         )
         LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(titles, key = { it.id }) { t ->

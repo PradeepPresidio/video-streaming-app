@@ -11,7 +11,7 @@ Test commands:
 | --- | --- | --- | --- | --- | --- |
 | R0 | Project builds and launches | P0 | passed | verification/R0-splash.png, verification/R0-home.png | `Status: ok`; cold start 399–455 ms; no FATAL/ANR. Home is a placeholder until R2; picker comes with R10 |
 | R1 | Offline content library | P0 | passed | verification/R1-home-1.png, R1-home-scroll1..6.png, R1-seen.txt, R1-play-movie-a/b.png, R1-play-episode-a/b.png, R1-back-to-home.png, R1-credits.png, R1-credits-2.png, R1-posters-sheet.jpg | Airplane mode on + `pm clear`: all 8 catalog ids found as posters on Home (diff vs catalog empty). Sintel + Steel Protocol E1 play (frames advance; `dumpsys audio` AudioTrack state:started for app pid). Credits lists 6 films with author + license. No FATAL/ANR. APK 97.8 MB |
-| R2 | Home screen | P0 | not started | | |
+| R2 | Home screen | P0 | passed | verification/R2-home.png, R2-row-swiped.png, R2-scrolled.png, R2-hero-play.png, R2-tabs-home.png | Launch: hero (backdrop w/ title+genres, maturity, Play/+My List/Info) + 3 rows (Trending, New Releases, Animation) + bottom nav. Trending swipe: visible spring,sintel,bbb,tos -> bbb,tos,caminandes,ed,bbt. Vertical scroll reveals Fantasy/Adventure/Comedy rows. Hero Play -> logcat `play Spring` (featured). All 4 tabs navigate. CW/My List rows hidden when empty (HomeRowsBuilderTest); populated in R5/R6. Hero +My List button wired in R6 |
 | R3 | Title details | P0 | not started | | |
 | R4 | Video player | P0 | not started | | |
 | R5 | Continue Watching and resume | P0 | not started | | |
@@ -27,6 +27,7 @@ Test commands:
 - R1: tools/prepare_media.sh, tools/titles.json, tools/MediaTool.java, app/src/main/assets/catalog.json (media/ gitignored),
   data/catalog/*, domain/HomeRowsBuilder.kt, ui/{home,components,navigation,profile,settings,search,downloads}/*,
   player/{PlayerViewModel,PlayerScreen}.kt, ReelBoxApp.kt, AppContainer.kt, scripts/ui.sh (adb tap-by-tag helper)
+- R2: ui/home/HomeScreen.kt (compact 2:1 hero), ui/components/Components.kt (88dp posters, alignment param)
 
 ## Helpers
 - `bash scripts/ui.sh tap <testTag|text|content-desc regex>` taps a node from a fresh uiautomator dump

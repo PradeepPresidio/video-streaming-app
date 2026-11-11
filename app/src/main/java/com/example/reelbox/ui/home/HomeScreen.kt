@@ -2,6 +2,7 @@ package com.example.reelbox.ui.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,8 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -69,47 +68,49 @@ fun HomeScreen(
         items(home.rows, key = { it.key }) { row ->
             TitleRow(row.label, row.titles, onTitleClick = onOpenTitle, progress = row.progress, testTag = "row:${row.key}")
         }
-        item { Spacer(Modifier.height(24.dp)) }
+        item { Spacer(Modifier.height(16.dp)) }
     }
 }
 
 @Composable
 fun HeroBanner(hero: Title, inMyList: Boolean, onPlay: () -> Unit, onToggleMyList: () -> Unit, onOpen: () -> Unit) {
     Column(Modifier.fillMaxWidth().testTag("hero")) {
-        Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
-            AssetImage(hero.backdrop, contentDescription = hero.title, modifier = Modifier.fillMaxSize())
+        // The backdrop already carries the title and genres (tools/prepare_media.sh); cropping from the top keeps them.
+        Box(Modifier.fillMaxWidth().aspectRatio(2f).clickable(onClick = onOpen)) {
+            AssetImage(
+                hero.backdrop,
+                contentDescription = "${hero.title}. ${hero.genres.joinToString(", ")}",
+                modifier = Modifier.fillMaxSize().testTag("hero:backdrop"),
+                alignment = Alignment.BottomCenter,
+            )
             Box(
                 Modifier.fillMaxSize().background(
-                    Brush.verticalGradient(0f to Color(0x99000000), 0.25f to Color.Transparent, 0.75f to Color.Transparent, 1f to MaterialTheme.colorScheme.background),
+                    Brush.verticalGradient(0f to Color(0xAA000000), 0.3f to Color.Transparent, 0.85f to Color.Transparent, 1f to MaterialTheme.colorScheme.background),
                 ),
             )
-            Row(Modifier.statusBarsPadding().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Image(painterResource(R.drawable.ic_launcher_foreground), null, Modifier.size(36.dp))
-                Text("ReelBox", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Black, fontSize = 20.sp)
+            Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Image(painterResource(R.drawable.ic_launcher_foreground), null, Modifier.size(32.dp))
+                Text("ReelBox", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Black, fontSize = 18.sp)
             }
+            MaturityBadge(hero.maturity.label, Modifier.align(Alignment.TopEnd).padding(12.dp))
         }
-        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(hero.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, modifier = Modifier.testTag("hero:title"))
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
-                MaturityBadge(hero.maturity.label)
-                Spacer(Modifier.width(8.dp))
-                Text(hero.genres.joinToString("  •  "), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Button(
+                onClick = onPlay,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
+                modifier = Modifier.weight(1f).testTag("hero:play"),
+            ) {
+                Icon(Icons.Filled.PlayArrow, null)
+                Text("Play", fontWeight = FontWeight.Bold)
             }
-            Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = onPlay,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
-                    modifier = Modifier.testTag("hero:play"),
-                ) {
-                    Icon(Icons.Filled.PlayArrow, null)
-                    Text("Play", fontWeight = FontWeight.Bold)
-                }
-                OutlinedButton(onClick = onToggleMyList, modifier = Modifier.testTag("hero:mylist")) {
-                    Icon(if (inMyList) Icons.Filled.Check else Icons.Filled.Add, null, tint = Color.White)
-                    Text("My List", color = Color.White)
-                }
-                OutlinedButton(onClick = onOpen, modifier = Modifier.testTag("hero:info")) { Text("Info", color = Color.White) }
+            OutlinedButton(onClick = onToggleMyList, modifier = Modifier.weight(1f).testTag("hero:mylist")) {
+                Icon(if (inMyList) Icons.Filled.Check else Icons.Filled.Add, null, tint = Color.White)
+                Text("My List", color = Color.White)
             }
+            OutlinedButton(onClick = onOpen, modifier = Modifier.testTag("hero:info")) { Text("Info", color = Color.White) }
         }
     }
 }
