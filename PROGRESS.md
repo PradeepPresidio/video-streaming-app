@@ -4,6 +4,7 @@ Environment: run `source scripts/env.sh` before Gradle (sets JAVA_HOME=Homebrew 
 ANDROID_HOME=/opt/homebrew/share/android-commandlinetools). Latest installed platform: android-34.
 
 Test commands:
+- `bash scripts/runthrough.sh <tag>` (full on-device P0 run-through in airplane mode, ~6 min)
 - `./gradlew assembleDebug testDebugUnitTest lintDebug`
 - `./gradlew connectedDebugAndroidTest`
 
@@ -17,7 +18,7 @@ Test commands:
 | R5 | Continue Watching and resume | P0 | passed | verification/R5-1-cw.png, R5-2-resumed.png, R5-2-details-resume.png, R5-3-before.png, R5-3-finished.png, R5-3-series-details.png, R5-3-series-next.png, R5-4-longpress.png, R5-4-removed.png, R5-3-4-triple.png, R5-episode-progress.png | 1) 30 s of Sintel + back: CW first row, partial bar (save pos=29500). 2) force-stop while playing at 57648 ms (last periodic save 57390) -> relaunch, tap CW card -> `play Sintel start=57390` (0.26 s off). Details shows Resume + '1m 3s left'. 3) ToS seek to 97% and finish -> CW row gone; Sintel also dropped after natural finish. Series: BBT E1 finished (countdown cancelled) -> details 'Play S1:E2', CW card opens `bbt-s1e2`. 4) long-press -> dialog -> Remove -> CW row gone. Episode progress bar on details confirmed. No FATAL/ANR |
 | R6 | My List | P0 | passed | verification/R6-1-two.png, R6-1-details-check.png, R6-1-pair.png, R6-2-persisted.png, R6-2-profile-mylist.png, R6-3-removed.png, R6-2-3-triple.png | Clean data: add Spring via hero, Sintel via details -> My List row `sintel spring` (newest first), hero '✓ My List' (content-desc 'In My List'), details ✓. force-stop+relaunch -> row unchanged; Profile > My List grid same order. Remove Spring via hero -> row `sintel`. No FATAL/ANR |
 | R7 | Search | P0 | passed | verification/R7-0-empty.png, R7-1-title.png, R7-2-genre.png, R7-3-none.png, R7-1-2-3-triple.png, R7-4-recent.png, R7-4-cleared.png, R7-4-recent-max5.png | 1) 'sint' -> sintel. 2) 'Comedy' -> big-buck-bunny, bunny-burrow-tales, caminandes-llamigos = exactly catalog Comedy titles. 3) 'zzzz' -> 'No results for “zzzz”'. 4) Home then back to Search: recent zzzz|Comedy|sint; tapping recent re-runs; Clear empties; 6 queries -> 5 kept (oldest dropped). Empty query shows Top searches grid. No FATAL/ANR |
-| R8 | Robustness and performance | P0 | not started | | |
+| R8 | Robustness and performance | P0 | passed | verification/R8-airplane/report.txt (+ r*.png, crashes.txt), R8-2-triple.png, R8-3-coldstart.txt, R8-4-exited.png, connected-test.log | 1) `scripts/runthrough.sh` airplane-mode run-through of R1–R8: 30/30 PASS, crashes.txt empty (no FATAL/ANR). 2) details -> Home -> `am kill` -> Recents: same details page (new pid). 3) cold start TotalTime 374–389 ms (median 380); run-through 373/376/376. 4) back: tabs->Home, Credits->Settings->Profile->Home, player->details->details->Home, back on Home -> launcher. Instrumented: 4/4 pass (connectedDebugAndroidTest) |
 | R9 | Downloads | P1 | not started | | |
 | R10 | Profiles | P1 | not started | | |
 | R11 | Settings | P1 | not started | | |
@@ -27,6 +28,7 @@ Test commands:
 - R1: tools/prepare_media.sh, tools/titles.json, tools/MediaTool.java, app/src/main/assets/catalog.json (media/ gitignored),
   data/catalog/*, domain/HomeRowsBuilder.kt, ui/{home,components,navigation,profile,settings,search,downloads}/*,
   player/{PlayerViewModel,PlayerScreen}.kt, ReelBoxApp.kt, AppContainer.kt, scripts/ui.sh (adb tap-by-tag helper)
+- R8: scripts/runthrough.sh (full P0 run-through), app/src/androidTest/.../ReelBoxFlowsTest.kt (4 UI flows), media-key handling (MainActivity.mediaKeyHandler, PlayerScreen.MediaKeys)
 - R7: domain/SearchEngine.kt (+test), data/SearchRepository.kt, ui/search/{SearchViewModel,SearchScreen}.kt
 - R6: data/MyListRepository.kt, ui/mylist/MyListScreen.kt, Profile > My List entry, hero/details toggles, Home My List row
 - R5: data/db/{Entities,Daos,ReelBoxDatabase}.kt (+app/schemas), data/prefs/SettingsStore.kt, data/{ProfileRepository,ProgressRepository}.kt, domain/ProgressRules.kt (+test), AppContainer (appScope, DB), HomeViewModel/HomeScreen (CW row, remove dialog), DetailsViewModel (resume target, episode progress), PlayerViewModel (resume start, saves every 5 s/stop/end/exit)
@@ -62,4 +64,7 @@ Test commands:
 - Without enableEdgeToEdge() the landscape window extends under the hidden nav bar but Compose insets are 0;
   controls there get empty bounds in dumps. The player pads overlays by navigationBarsIgnoringVisibility+displayCutout.
 - PiP works on this Xiaomi without extra permission.
+- MIUI blocks background activity starts (instrumentation's ActivityScenario) unless app-op MIUIOP(10021) is allowed;
+  ReelBoxFlowsTest grants it in @BeforeClass via shell. connectedDebugAndroidTest uninstalls the app afterwards -> reinstall.
+- The run-through pauses with KEYCODE_MEDIA_PAUSE (app handles media keys) so dumps are fast and the intro window isn't missed.
 - SwiftKey (default IME) occasionally drops the last char of `adb shell input text` when commands are chained; read the field back before asserting.

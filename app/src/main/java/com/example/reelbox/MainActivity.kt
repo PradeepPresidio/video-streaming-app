@@ -3,6 +3,7 @@ package com.example.reelbox
 import android.app.PictureInPictureParams
 import android.content.pm.ActivityInfo
 import android.util.Rational
+import android.view.KeyEvent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
@@ -41,6 +42,12 @@ import kotlinx.coroutines.delay
 class MainActivity : ComponentActivity() {
     /** True while the player is on screen; Home then shrinks playback into picture-in-picture. */
     var pipEnabled = false
+
+    /** Set by the player while shown: handles hardware media keys (headset, keyboard). Returns true if consumed. */
+    var mediaKeyHandler: ((Int) -> Boolean)? = null
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean =
+        mediaKeyHandler?.invoke(keyCode) == true || super.onKeyDown(keyCode, event)
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()

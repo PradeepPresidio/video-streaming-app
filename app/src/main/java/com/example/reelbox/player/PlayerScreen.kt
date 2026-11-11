@@ -2,6 +2,7 @@ package com.example.reelbox.player
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
+import android.view.KeyEvent
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -102,6 +103,7 @@ fun PlayerScreen(onBack: () -> Unit, vm: PlayerViewModel = viewModel(factory = P
     val inPip = rememberIsInPipMode()
     FullscreenLandscape()
     PipEligibility()
+    MediaKeys(vm)
     PauseWhenStopped(vm)
 
     var controlsVisible by rememberSaveable { mutableStateOf(true) }
@@ -341,6 +343,23 @@ private fun PipEligibility() {
     DisposableEffect(Unit) {
         activity.pipEnabled = true
         onDispose { activity.pipEnabled = false }
+    }
+}
+
+/** Hardware media keys (headset button, keyboard play/pause) control playback while the player is shown. */
+@Composable
+private fun MediaKeys(vm: PlayerViewModel) {
+    val activity = LocalContext.current as? MainActivity ?: return
+    DisposableEffect(vm) {
+        activity.mediaKeyHandler = { keyCode ->
+            when (keyCode) {
+                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_HEADSETHOOK -> { vm.togglePlay(); true }
+                KeyEvent.KEYCODE_MEDIA_PLAY -> { vm.play(); true }
+                KeyEvent.KEYCODE_MEDIA_PAUSE -> { vm.pause(); true }
+                else -> false
+            }
+        }
+        onDispose { activity.mediaKeyHandler = null }
     }
 }
 

@@ -246,6 +246,11 @@ class PlayerViewModel(
 
     fun pause() { player.pause() }
 
+    fun play() {
+        if (player.playbackState == Player.STATE_ENDED) player.seekTo(0)
+        player.play()
+    }
+
     override fun onCleared() {
         saveProgress()
         player.removeListener(listener)
