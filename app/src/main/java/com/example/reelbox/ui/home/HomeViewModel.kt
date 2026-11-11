@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.reelbox.container
 import com.example.reelbox.data.MyListRepository
+import com.example.reelbox.data.ProfileRepository
 import com.example.reelbox.data.ProgressRepository
 import com.example.reelbox.data.catalog.CatalogRepository
 import com.example.reelbox.domain.ContinueItem
@@ -26,16 +27,19 @@ class HomeViewModel(
     catalogRepository: CatalogRepository,
     private val progressRepository: ProgressRepository,
     private val myListRepository: MyListRepository,
+    profileRepository: ProfileRepository,
 ) : ViewModel() {
     val state: StateFlow<HomeUiState?> = combine(
         flow { emit(catalogRepository.catalog()) },
         progressRepository.entries.onStart { emit(emptyList()) },
         myListRepository.titleIds.onStart { emit(emptyList()) },
-    ) { catalog, entries, myListIds ->
-        val cw = ProgressRules.continueWatching(catalog, entries)
+        profileRepository.visibility,
+    ) { catalog, entries, myListIds, visible ->
+        val cw = ProgressRules.continueWatching(catalog, entries).filter { visible(it.title) }
         HomeUiState(
             HomeRowsBuilder.build(
                 catalog,
+                visible = visible,
                 continueWatching = cw.map { it.title to it.fraction },
                 myList = myListIds.mapNotNull(catalog::title),
             ),
@@ -54,7 +58,7 @@ class HomeViewModel(
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { HomeViewModel(container.catalogRepository, container.progressRepository, container.myListRepository) }
+            initializer { HomeViewModel(container.catalogRepository, container.progressRepository, container.myListRepository, container.profileRepository) }
         }
     }
 }

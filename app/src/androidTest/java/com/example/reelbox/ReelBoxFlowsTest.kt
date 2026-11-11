@@ -59,8 +59,13 @@ class ReelBoxFlowsTest {
 
     @After fun close() { scenario?.close() }
 
-    private fun launch() {
+    /** Launches the app and picks [profileId] (default: the first profile) on "Who's watching?". */
+    private fun launch(profileId: Long? = null) {
         scenario = ActivityScenario.launch(MainActivity::class.java)
+        compose.waitUntilAtLeastOneExists(hasTestTag("profiles"), 15_000)
+        val id = profileId ?: runBlocking { app.container.profileRepository.profiles.first().first().id }
+        compose.waitUntilAtLeastOneExists(hasTestTag("profile:$id"), 10_000)
+        compose.onNodeWithTag("profile:$id").performClick()
         compose.waitUntilAtLeastOneExists(hasTestTag("home"), 15_000)
         compose.waitUntilAtLeastOneExists(hasTestTag("hero"), 15_000)
     }
@@ -112,6 +117,16 @@ class ReelBoxFlowsTest {
         compose.waitUntilAtLeastOneExists(hasTestTag("hero:mylist"), 10_000)
         compose.onNodeWithTag("hero:mylist").performClick() // remove the hero title again
         compose.waitUntil(5_000) { runBlocking { app.container.myListRepository.titleIds.first() } == listOf("sintel") }
+    }
+
+    @Test fun kidsProfileSeesOnlyKidsTitles() {
+        val kidsId = runBlocking { app.container.profileRepository.create("Kids", 4, isKids = true)!! }
+        launch(kidsId)
+        assertTrue(compose.onAllNodesWithTag("row:continue").fetchSemanticsNodes().isEmpty())
+        compose.onNodeWithTag("tab:search").performClick()
+        compose.waitUntilAtLeastOneExists(hasTestTag("search:field"), 10_000)
+        compose.onNodeWithTag("search:field").performTextInput("Steel")
+        compose.waitUntilAtLeastOneExists(hasTestTag("search:noresults"), 5_000)
     }
 
     @Test fun searchTitleGenreAndNoResults() {

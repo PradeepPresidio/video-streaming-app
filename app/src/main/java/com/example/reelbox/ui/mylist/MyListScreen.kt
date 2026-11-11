@@ -20,6 +20,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.reelbox.container
 import com.example.reelbox.data.MyListRepository
+import com.example.reelbox.data.ProfileRepository
 import com.example.reelbox.data.catalog.CatalogRepository
 import com.example.reelbox.data.catalog.Title
 import com.example.reelbox.ui.components.CenteredMessage
@@ -31,14 +32,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 
-class MyListViewModel(catalogRepository: CatalogRepository, myListRepository: MyListRepository) : ViewModel() {
+class MyListViewModel(
+    catalogRepository: CatalogRepository,
+    myListRepository: MyListRepository,
+    profileRepository: ProfileRepository,
+) : ViewModel() {
     /** Null while loading; newest first. */
-    val titles: StateFlow<List<Title>?> = combine(flow { emit(catalogRepository.catalog()) }, myListRepository.titleIds) { catalog, ids ->
-        ids.mapNotNull(catalog::title)
+    val titles: StateFlow<List<Title>?> = combine(
+        flow { emit(catalogRepository.catalog()) }, myListRepository.titleIds, profileRepository.visibility,
+    ) { catalog, ids, visible ->
+        ids.mapNotNull(catalog::title).filter(visible)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     companion object {
-        val Factory = viewModelFactory { initializer { MyListViewModel(container.catalogRepository, container.myListRepository) } }
+        val Factory = viewModelFactory { initializer { MyListViewModel(container.catalogRepository, container.myListRepository, container.profileRepository) } }
     }
 }
 

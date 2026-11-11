@@ -20,7 +20,12 @@ check() { # check <name> <condition-result 0/1> <detail>
 }
 shot() { adb exec-out screencap -p > "$OUT/$1.png"; }
 back() { adb shell input keyevent KEYCODE_BACK; sleep "${1:-1.5}"; }
-launch() { adb shell am start -W -n $PKG/.MainActivity | grep -E 'Status|TotalTime'; sleep 2.5; }
+launch() { # cold launch, then pick the first profile on "Who's watching?"
+  adb shell am start -W -n $PKG/.MainActivity | grep -E 'Status|TotalTime'; sleep 2.5; bash $UI dump
+  if grep -q 'resource-id="profiles"' $X; then
+    adb shell input tap $(xy "$(grep -oE 'resource-id="profile:[0-9]+"' $X | head -1 | sed 's/resource-id="//; s/"$//')"); sleep 2.5
+  fi
+}
 ids_in_dump() { grep -oE 'resource-id="poster:[a-z0-9-]+"' $X | sed 's/resource-id="poster://; s/"//' | sort -u; }
 row_ids() { tr '>' '\n' < $X | awk -v r="row:$1\"" 'index($0,r){f=1;next} f && /resource-id="row:/{f=0} f && /resource-id="poster:/{match($0,/poster:[a-z0-9-]+/); printf "%s ", substr($0,RSTART+7,RLENGTH-7)}'; }
 pause_player() { # pause via media key (no slow dump while playing), then make sure controls are visible

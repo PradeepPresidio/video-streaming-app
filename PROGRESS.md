@@ -20,7 +20,7 @@ Test commands:
 | R7 | Search | P0 | passed | verification/R7-0-empty.png, R7-1-title.png, R7-2-genre.png, R7-3-none.png, R7-1-2-3-triple.png, R7-4-recent.png, R7-4-cleared.png, R7-4-recent-max5.png | 1) 'sint' -> sintel. 2) 'Comedy' -> big-buck-bunny, bunny-burrow-tales, caminandes-llamigos = exactly catalog Comedy titles. 3) 'zzzz' -> 'No results for “zzzz”'. 4) Home then back to Search: recent zzzz|Comedy|sint; tapping recent re-runs; Clear empties; 6 queries -> 5 kept (oldest dropped). Empty query shows Top searches grid. No FATAL/ANR |
 | R8 | Robustness and performance | P0 | passed | verification/R8-airplane/report.txt (+ r*.png, crashes.txt), R8-2-triple.png, R8-3-coldstart.txt, R8-4-exited.png, connected-test.log | 1) `scripts/runthrough.sh` airplane-mode run-through of R1–R8: 30/30 PASS, crashes.txt empty (no FATAL/ANR). 2) details -> Home -> `am kill` -> Recents: same details page (new pid). 3) cold start TotalTime 374–389 ms (median 380); run-through 373/376/376. 4) back: tabs->Home, Credits->Settings->Profile->Home, player->details->details->Home, back on Home -> launcher. Instrumented: 4/4 pass (connectedDebugAndroidTest) |
 | R9 | Downloads | P1 | not started | | |
-| R10 | Profiles | P1 | not started | | |
+| R10 | Profiles | P1 | passed | verification/R10-0-picker-initial.png, R10-1-form-A.png, R10-1-form-Kids.png, R10-1-pair.png, R10-2-pair.png, R10-3-kids-search.png, R10-4-triple.png, R10-max5.png, R10-rename.png, R10-regression/report.txt | 1) picker: created A and Kids (Kids switch on, KIDS badge). 2) A: My List=Spring, CW=Sintel; switch to Kids -> Home rows `trending new genre:Animation` (no CW/My List), cyan accent. 3) Kids Home shows exactly the U/U-A 7+ set {big-buck-bunny, bunny-burrow-tales, caminandes-llamigos, spring}; top searches filtered; 'Steel'/'Protocol'(A)/'Sintel'/'Sci-Fi' -> no results. 4) Manage > A > Delete: picker = Me, Kids; DB rows for A (progress 1, my_list 1) -> 0 via FK cascade; Me shows no CW/My List. Also: 5-profile cap hides Add, rename works. Instrumented 5/5 (incl. kids test) |
 | R11 | Settings | P1 | not started | | |
 
 ## Modified files
@@ -28,6 +28,7 @@ Test commands:
 - R1: tools/prepare_media.sh, tools/titles.json, tools/MediaTool.java, app/src/main/assets/catalog.json (media/ gitignored),
   data/catalog/*, domain/HomeRowsBuilder.kt, ui/{home,components,navigation,profile,settings,search,downloads}/*,
   player/{PlayerViewModel,PlayerScreen}.kt, ReelBoxApp.kt, AppContainer.kt, scripts/ui.sh (adb tap-by-tag helper)
+- R10: domain/ProfileRules.kt (+test), data/ProfileRepository (create/update/delete/select, activeProfile, visibility), ui/profiles/{Avatar,ProfilePickerScreen,ProfileEditScreen}.kt, ui/profile/ProfileScreen (header, Switch Profile), nav start = picker, Kids accent in MainActivity, visibility filter in Home/Details/Search/MyList VMs
 - R8: scripts/runthrough.sh (full P0 run-through), app/src/androidTest/.../ReelBoxFlowsTest.kt (4 UI flows), media-key handling (MainActivity.mediaKeyHandler, PlayerScreen.MediaKeys)
 - R7: domain/SearchEngine.kt (+test), data/SearchRepository.kt, ui/search/{SearchViewModel,SearchScreen}.kt
 - R6: data/MyListRepository.kt, ui/mylist/MyListScreen.kt, Profile > My List entry, hero/details toggles, Home My List row
@@ -42,6 +43,8 @@ Test commands:
 - Media: `bash tools/prepare_media.sh` (needs ~560 MB cache in tools/.cache; ~5 min).
 
 ## Assumptions
+- 'Who's watching?' shows on every cold launch (not after process-death restore). Deleting the last profile recreates 'Me'.
+- Kids profiles: titles above U/A 7+ are hidden everywhere (rows, hero, CW, My List, search, More Like This) and their details page reports 'not found'.
 - A search counts as 'recent' when submitted, when a result is opened, or after the query is unchanged for 1.5 s (min 2 chars).
 - A query equal to a genre name returns only that genre; otherwise substring match on title/genre/cast.
 - Continue Watching 'Remove' deletes that title's progress for the profile (episode bars reset too).
@@ -67,4 +70,5 @@ Test commands:
 - MIUI blocks background activity starts (instrumentation's ActivityScenario) unless app-op MIUIOP(10021) is allowed;
   ReelBoxFlowsTest grants it in @BeforeClass via shell. connectedDebugAndroidTest uninstalls the app afterwards -> reinstall.
 - The run-through pauses with KEYCODE_MEDIA_PAUSE (app handles media keys) so dumps are fast and the intro window isn't missed.
+- First launch right after an install is slow (~1.8-2.0 s, ART compiling); steady-state cold start ~410 ms. Measure after one warm-up launch.
 - SwiftKey (default IME) occasionally drops the last char of `adb shell input text` when commands are chained; read the field back before asserting.

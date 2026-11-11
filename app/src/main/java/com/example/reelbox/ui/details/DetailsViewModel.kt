@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.reelbox.container
 import com.example.reelbox.data.MyListRepository
+import com.example.reelbox.data.ProfileRepository
 import com.example.reelbox.data.ProgressRepository
 import com.example.reelbox.data.catalog.CatalogRepository
 import com.example.reelbox.data.catalog.Title
@@ -39,6 +40,7 @@ class DetailsViewModel(
     catalogRepository: CatalogRepository,
     progressRepository: ProgressRepository,
     private val myListRepository: MyListRepository,
+    profileRepository: ProfileRepository,
     savedState: SavedStateHandle,
 ) : ViewModel() {
     private val titleId: String = requireNotNull(savedState["titleId"])
@@ -49,14 +51,16 @@ class DetailsViewModel(
         progressRepository.entries.onStart { emit(emptyList()) },
         selectedSeason,
         myListRepository.titleIds.onStart { emit(emptyList()) },
-    ) { catalog, entries, season, myList ->
-        val title = catalog.title(titleId) ?: return@combine DetailsUiState(notFound = true, loading = false)
+        profileRepository.visibility,
+    ) { catalog, entries, season, myList, visible ->
+        // A title the profile may not see (Kids) behaves as if it didn't exist.
+        val title = catalog.title(titleId)?.takeIf(visible) ?: return@combine DetailsUiState(notFound = true, loading = false)
         val mine = entries.filter { it.titleId == titleId }
         DetailsUiState(
             title = title,
             loading = false,
             selectedSeason = season ?: title.seasons.firstOrNull() ?: 1,
-            moreLikeThis = Recommendations.moreLikeThis(catalog, title),
+            moreLikeThis = Recommendations.moreLikeThis(catalog, title, visible),
             progress = mine.filter { !it.finished || it.positionMs > 0 }.associate { it.mediaId to it.fraction },
             playTarget = ProgressRules.playTarget(catalog, title, mine),
             inMyList = titleId in myList,
@@ -71,7 +75,7 @@ class DetailsViewModel(
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { DetailsViewModel(container.catalogRepository, container.progressRepository, container.myListRepository, createSavedStateHandle()) }
+            initializer { DetailsViewModel(container.catalogRepository, container.progressRepository, container.myListRepository, container.profileRepository, createSavedStateHandle()) }
         }
     }
 }

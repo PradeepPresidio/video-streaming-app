@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.reelbox.container
+import com.example.reelbox.data.ProfileRepository
 import com.example.reelbox.data.SearchRepository
 import com.example.reelbox.data.catalog.CatalogRepository
 import com.example.reelbox.data.catalog.Title
@@ -36,6 +37,7 @@ data class SearchUiState(
 class SearchViewModel(
     catalogRepository: CatalogRepository,
     private val searchRepository: SearchRepository,
+    profileRepository: ProfileRepository,
     private val savedState: SavedStateHandle,
 ) : ViewModel() {
     private val query = savedState.getStateFlow(KEY_QUERY, "")
@@ -44,8 +46,9 @@ class SearchViewModel(
         flow { emit(catalogRepository.catalog()) },
         query,
         searchRepository.recent.onStart { emit(emptyList()) },
-    ) { catalog, q, recent ->
-        SearchUiState(q, SearchEngine.search(catalog, q), recent, SearchEngine.topSearches(catalog), loading = false)
+        profileRepository.visibility,
+    ) { catalog, q, recent, visible ->
+        SearchUiState(q, SearchEngine.search(catalog, q, visible), recent, SearchEngine.topSearches(catalog, visible), loading = false)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SearchUiState())
 
     init {
@@ -70,7 +73,7 @@ class SearchViewModel(
         private const val KEY_QUERY = "query"
         private const val SETTLE_MS = 1_500L
         val Factory = viewModelFactory {
-            initializer { SearchViewModel(container.catalogRepository, container.searchRepository, createSavedStateHandle()) }
+            initializer { SearchViewModel(container.catalogRepository, container.searchRepository, container.profileRepository, createSavedStateHandle()) }
         }
     }
 }

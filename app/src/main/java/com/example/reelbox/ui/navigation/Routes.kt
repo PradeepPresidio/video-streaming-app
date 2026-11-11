@@ -3,6 +3,8 @@ package com.example.reelbox.ui.navigation
 import android.net.Uri
 
 object Routes {
+    const val PROFILES = "profiles"
+    const val PROFILE_EDIT = "profileEdit?id={id}"
     const val HOME = "home"
     const val SEARCH = "search"
     const val DOWNLOADS = "downloads"
@@ -15,6 +17,7 @@ object Routes {
 
     val tabs = listOf(HOME, SEARCH, DOWNLOADS, PROFILE)
 
+    fun profileEdit(id: Long = 0) = "profileEdit?id=$id"
     fun details(titleId: String) = "details/${Uri.encode(titleId)}"
     fun player(titleId: String, episodeId: String? = null, local: Boolean = false) =
         "player/${Uri.encode(titleId)}?episodeId=${episodeId?.let(Uri::encode) ?: ""}&local=$local"

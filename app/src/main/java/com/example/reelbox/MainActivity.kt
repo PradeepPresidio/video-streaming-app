@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
 import com.example.reelbox.ui.navigation.ReelBoxNavHost
 import com.example.reelbox.ui.theme.RbAccent
+import com.example.reelbox.ui.theme.RbKidsAccent
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.reelbox.ui.theme.ReelBoxTheme
 import kotlinx.coroutines.delay
 
@@ -66,7 +68,10 @@ class MainActivity : ComponentActivity() {
         // Phone portrait browsing; PlayerScreen switches to landscape while it is shown.
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         setContent {
-            ReelBoxTheme {
+            // Kids profiles get the brighter accent everywhere.
+            val container = (application as ReelBoxApp).container
+            val profile by container.profileRepository.activeProfile.collectAsStateWithLifecycle(initialValue = null)
+            ReelBoxTheme(accent = if (profile?.isKids == true) RbKidsAccent else RbAccent) {
               // Expose Compose testTags as resource-ids so adb/uiautomator checks can find nodes.
               Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
                 // Skip the splash when restoring after process death or recreation.

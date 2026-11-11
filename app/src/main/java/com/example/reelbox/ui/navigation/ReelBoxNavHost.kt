@@ -20,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -34,9 +33,13 @@ import com.example.reelbox.ui.downloads.DownloadsScreen
 import com.example.reelbox.ui.home.HomeScreen
 import com.example.reelbox.ui.mylist.MyListScreen
 import com.example.reelbox.ui.profile.ProfileScreen
+import com.example.reelbox.ui.profiles.ProfileEditScreen
+import com.example.reelbox.ui.profiles.ProfilePickerScreen
 import com.example.reelbox.ui.search.SearchScreen
 import com.example.reelbox.ui.settings.CreditsScreen
 import com.example.reelbox.ui.settings.SettingsScreen
+import com.example.reelbox.ui.theme.RbAccent
+import com.example.reelbox.ui.theme.ReelBoxTheme
 
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
 
@@ -56,7 +59,21 @@ fun ReelBoxNavHost(nav: NavHostController) {
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(if (route == Routes.PLAYER) androidx.compose.foundation.layout.PaddingValues() else padding)) {
-            NavHost(nav, startDestination = Routes.HOME) {
+            NavHost(nav, startDestination = Routes.PROFILES) {
+                composable(Routes.PROFILES) {
+                  // Choosing a profile uses the neutral brand accent, not the last profile's (e.g. Kids).
+                  ReelBoxTheme(accent = RbAccent) {
+                    ProfilePickerScreen(
+                        // Entering the app replaces the picker so back on Home exits.
+                        onProfileChosen = { nav.navigate(Routes.HOME) { popUpTo(Routes.PROFILES) { inclusive = true } } },
+                        onEdit = { id -> nav.navigate(Routes.profileEdit(id)) },
+                        onAdd = { nav.navigate(Routes.profileEdit()) },
+                    )
+                  }
+                }
+                composable(Routes.PROFILE_EDIT, arguments = listOf(navArgument("id") { type = NavType.LongType; defaultValue = 0L })) {
+                    ReelBoxTheme(accent = RbAccent) { ProfileEditScreen(onDone = { nav.popBackStack() }) }
+                }
                 val openDetails: (Title) -> Unit = { t -> nav.navigate(Routes.details(t.id)) }
                 composable(Routes.HOME) { HomeScreen(
                         onOpenTitle = openDetails,
@@ -72,7 +89,15 @@ fun ReelBoxNavHost(nav: NavHostController) {
                 }
                 composable(Routes.SEARCH) { SearchScreen(onOpenTitle = openDetails) }
                 composable(Routes.DOWNLOADS) { DownloadsScreen() }
-                composable(Routes.PROFILE) { ProfileScreen(onMyList = { nav.navigate(Routes.MY_LIST) }, onSettings = { nav.navigate(Routes.SETTINGS) }) }
+                composable(Routes.PROFILE) {
+                    ProfileScreen(
+                        onMyList = { nav.navigate(Routes.MY_LIST) },
+                        onSettings = { nav.navigate(Routes.SETTINGS) },
+                        onSwitchProfile = {
+                            nav.navigate(Routes.PROFILES) { popUpTo(nav.graph.id) { inclusive = true } }
+                        },
+                    )
+                }
                 composable(Routes.MY_LIST) { MyListScreen(onBack = { nav.popBackStack() }, onOpenTitle = openDetails) }
                 composable(Routes.SETTINGS) { SettingsScreen(onBack = { nav.popBackStack() }, onCredits = { nav.navigate(Routes.CREDITS) }) }
                 composable(Routes.CREDITS) { CreditsScreen(onBack = { nav.popBackStack() }) }
@@ -97,7 +122,8 @@ private fun BottomBar(nav: NavHostController, current: String?) {
                 selected = current == tab.route,
                 onClick = {
                     nav.navigate(tab.route) {
-                        popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                        // Home is the root once a profile is chosen (the picker is popped off the stack).
+                        popUpTo(Routes.HOME) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
