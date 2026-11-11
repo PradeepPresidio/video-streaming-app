@@ -64,7 +64,7 @@ class SettingsViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val c = container
-                SettingsViewModel(c.settings, { c.downloadStorage.deleteAll() }, { c.downloadStorage.usedBytes() })
+                SettingsViewModel(c.settings, { c.downloadRepository.deleteAll() }, { c.downloadRepository.usedBytes() })
             }
         }
     }

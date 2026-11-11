@@ -47,3 +47,18 @@ data class MyListEntity(val profileId: Long, val titleId: String, val addedAt: L
     foreignKeys = [ForeignKey(ProfileEntity::class, ["id"], ["profileId"], onDelete = ForeignKey.CASCADE)],
 )
 data class RecentSearchEntity(val profileId: Long, val query: String, val searchedAt: Long)
+
+/** A downloaded (or downloading) copy of one movie or episode. Device-wide, not per profile. */
+@Entity(tableName = "downloads")
+data class DownloadEntity(
+    /** episodeId for an episode, titleId for a movie. */
+    @PrimaryKey val mediaId: String,
+    val titleId: String,
+    val episodeId: String?,
+    /** A [com.example.reelbox.domain.DownloadStatus] name. */
+    val status: String,
+    val bytesDone: Long,
+    val totalBytes: Long,
+    val createdAt: Long,
+    val updatedAt: Long,
+)

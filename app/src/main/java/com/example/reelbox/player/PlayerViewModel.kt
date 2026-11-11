@@ -24,6 +24,7 @@ import com.example.reelbox.data.catalog.Episode
 import com.example.reelbox.data.catalog.MediaInfo
 import com.example.reelbox.data.catalog.Title
 import com.example.reelbox.data.ProgressRepository
+import com.example.reelbox.data.download.DownloadRepository
 import com.example.reelbox.data.prefs.SettingsStore
 import com.example.reelbox.domain.PlayerRules
 import com.example.reelbox.domain.ProgressRules
@@ -67,14 +68,13 @@ class PlayerViewModel(
     private val catalogRepository: CatalogRepository,
     private val progressRepository: ProgressRepository,
     private val settings: SettingsStore,
+    private val downloads: DownloadRepository,
     /** App-wide scope so the final save on exit completes after this ViewModel is cleared. */
     private val appScope: CoroutineScope,
     private val savedState: SavedStateHandle,
 ) : ViewModel() {
-    val player: ExoPlayer = ExoPlayer.Builder(app)
-        .setSeekBackIncrementMs(PlayerRules.SEEK_STEP_MS)
-        .setSeekForwardIncrementMs(PlayerRules.SEEK_STEP_MS)
-        .build()
+    /** ±10 s seeking goes through [seekBy] (PlayerRules.SEEK_STEP_MS), so the builder's seek increments aren't used. */
+    val player: ExoPlayer = ExoPlayer.Builder(app).build()
 
     private val _state = MutableStateFlow(PlayerUiState())
     val state: StateFlow<PlayerUiState> = _state.asStateFlow()
@@ -122,17 +122,24 @@ class PlayerViewModel(
 
     private fun load(np: NowPlaying, startMs: Long) {
         val media = np.media
-        val builder = MediaItem.Builder().setUri(AssetUris.media(media.video)).setMediaId(np.episode?.id ?: np.title.id)
+        val mediaId = np.episode?.id ?: np.title.id
+        // Opened from Downloads: play the downloaded copy (falls back to the bundled library if it was deleted).
+        val local = savedState.get<Boolean>(ARG_LOCAL) == true
+        val localVideo = if (local) downloads.localVideo(mediaId) else null
+        if (local && localVideo == null) Log.w(TAG, "no downloaded copy of $mediaId, using the bundled one")
+        val videoUri = localVideo?.let { Uri.fromFile(it).toString() } ?: AssetUris.media(media.video)
+        val builder = MediaItem.Builder().setUri(videoUri).setMediaId(mediaId)
         media.subtitles?.let { srt ->
+            val srtUri = localVideo?.let { downloads.localSubtitles(mediaId) }?.let(Uri::fromFile) ?: Uri.parse(AssetUris.media(srt))
             builder.setSubtitleConfigurations(
                 listOf(
-                    MediaItem.SubtitleConfiguration.Builder(Uri.parse(AssetUris.media(srt)))
+                    MediaItem.SubtitleConfiguration.Builder(srtUri)
                         .setMimeType(MimeTypes.APPLICATION_SUBRIP).setLanguage("en").setLabel("English")
                         .setSelectionFlags(C.SELECTION_FLAG_DEFAULT).build(),
                 ),
             )
         }
-        Log.i(TAG, "play ${np.heading} uri=${AssetUris.media(media.video)} start=$startMs")
+        Log.i(TAG, "play ${np.heading} uri=$videoUri start=$startMs")
         _state.update {
             it.copy(
                 nowPlaying = np, ended = false, countdown = null, countdownCancelled = false,
@@ -267,12 +274,13 @@ class PlayerViewModel(
         const val TAG = "ReelBoxPlayer"
         private const val ARG_TITLE = "titleId"
         private const val ARG_EPISODE = "episodeId"
+        private const val ARG_LOCAL = "local"
         private const val KEY_POSITION = "position"
         private const val KEY_SUBS = "subtitles"
         val Factory = viewModelFactory {
             initializer {
                 val c = container
-                PlayerViewModel(this[APPLICATION_KEY]!!, c.catalogRepository, c.progressRepository, c.settings, c.appScope, createSavedStateHandle())
+                PlayerViewModel(this[APPLICATION_KEY]!!, c.catalogRepository, c.progressRepository, c.settings, c.downloadRepository, c.appScope, createSavedStateHandle())
             }
         }
     }

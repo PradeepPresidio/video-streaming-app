@@ -88,6 +88,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.annotation.OptIn as Media3OptIn
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 import com.example.reelbox.MainActivity
 import com.example.reelbox.domain.PlayerRules
@@ -124,15 +126,7 @@ fun PlayerScreen(onBack: () -> Unit, vm: PlayerViewModel = viewModel(factory = P
     Box(Modifier.fillMaxSize().background(Color.Black).testTag("player")) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
-            factory = { ctx ->
-                PlayerView(ctx).apply {
-                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                    useController = false
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                    subtitleView?.setFractionalTextSize(0.065f)
-                    player = vm.player
-                }
-            },
+            factory = { ctx -> createPlayerView(ctx, vm.player) },
             onRelease = { it.player = null },
         )
         if (inPip) return@Box
@@ -189,6 +183,20 @@ fun PlayerScreen(onBack: () -> Unit, vm: PlayerViewModel = viewModel(factory = P
         }
     }
 }
+
+/**
+ * The video surface. Fit-to-screen resizing and the subtitle text size are Media3 APIs marked
+ * @UnstableApi (they may change between Media3 versions), so their use is opted into explicitly.
+ */
+@Media3OptIn(UnstableApi::class)
+private fun createPlayerView(context: android.content.Context, player: androidx.media3.common.Player): PlayerView =
+    PlayerView(context).apply {
+        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        useController = false
+        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+        subtitleView?.setFractionalTextSize(0.065f)
+        this.player = player
+    }
 
 @Composable
 private fun Controls(state: PlayerUiState, vm: PlayerViewModel, onBack: () -> Unit, onLock: () -> Unit, bump: () -> Unit) {

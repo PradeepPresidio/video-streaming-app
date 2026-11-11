@@ -9,6 +9,7 @@ import com.example.reelbox.data.ProgressRepository
 import com.example.reelbox.data.SearchRepository
 import com.example.reelbox.data.catalog.CatalogRepository
 import com.example.reelbox.data.db.ReelBoxDatabase
+import com.example.reelbox.data.download.DownloadRepository
 import com.example.reelbox.data.download.DownloadStorage
 import com.example.reelbox.data.prefs.SettingsStore
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +31,7 @@ class AppContainer(context: Context) {
     val progressRepository by lazy { ProgressRepository(database.progress(), profileRepository, catalogRepository) }
     val myListRepository by lazy { MyListRepository(database.myList(), profileRepository) }
     val downloadStorage by lazy { DownloadStorage(appContext) }
+    val downloadRepository by lazy { DownloadRepository(appContext, database.downloads(), downloadStorage) }
     val searchRepository by lazy { SearchRepository(database.recentSearches(), profileRepository) }
 
     init {

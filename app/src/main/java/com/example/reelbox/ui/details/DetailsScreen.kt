@@ -23,7 +23,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -62,7 +61,11 @@ import com.example.reelbox.ui.components.AssetImage
 import com.example.reelbox.ui.components.CenteredMessage
 import com.example.reelbox.ui.components.MaturityBadge
 import com.example.reelbox.ui.components.TitleRow
+import com.example.reelbox.domain.DownloadRules
+import com.example.reelbox.domain.DownloadState
 import com.example.reelbox.domain.PlayTarget
+import com.example.reelbox.ui.components.DownloadActions
+import com.example.reelbox.ui.components.DownloadButton
 import com.example.reelbox.util.formatDurationShort
 
 @Composable
@@ -70,7 +73,6 @@ fun DetailsScreen(
     onBack: () -> Unit,
     onPlay: (title: Title, episode: Episode?) -> Unit,
     onOpenTitle: (Title) -> Unit,
-    onDownload: (Title) -> Unit = {},
     vm: DetailsViewModel = viewModel(factory = DetailsViewModel.Factory),
 ) {
     val state by vm.state.collectAsStateWithLifecycle()
@@ -80,12 +82,23 @@ fun DetailsScreen(
         title == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         else -> LazyColumn(Modifier.fillMaxSize().testTag("details:${title.id}")) {
             item(key = "header") {
-                DetailsHeader(title, state, onBack, onPlay = { onPlay(title, state.playTarget?.episode) }, onToggleMyList = vm::toggleMyList, onDownload = { onDownload(title) })
+                val downloadActions = if (title.isSeries) {
+                    DownloadActions(start = { vm.downloadAll(title) }, pause = vm::pauseAll, resume = vm::resumeAll, cancel = vm::cancelAll, delete = { vm.deleteAll(title) })
+                } else {
+                    DownloadActions(start = { vm.download(title, null) }, pause = { vm.pauseDownload(title.id) }, resume = { vm.resumeDownload(title.id) },
+                        cancel = { vm.removeDownload(title.id) }, delete = { vm.removeDownload(title.id) })
+                }
+                DetailsHeader(title, state, onBack, onPlay = { onPlay(title, state.playTarget?.episode) }, onToggleMyList = vm::toggleMyList, downloadActions = downloadActions)
             }
             if (title.isSeries) {
                 item(key = "episodes-header") { EpisodesHeader(title.seasons, state.selectedSeason, vm::selectSeason) }
                 items(title.episodes.filter { it.season == state.selectedSeason }, key = { it.id }) { ep ->
-                    EpisodeItem(ep, state.progress[ep.id], onClick = { onPlay(title, ep) })
+                    EpisodeItem(
+                        ep, state.progress[ep.id], DownloadRules.state(state.downloads[ep.id]),
+                        DownloadActions(start = { vm.download(title, ep) }, pause = { vm.pauseDownload(ep.id) }, resume = { vm.resumeDownload(ep.id) },
+                            cancel = { vm.removeDownload(ep.id) }, delete = { vm.removeDownload(ep.id) }),
+                        onClick = { onPlay(title, ep) },
+                    )
                 }
             }
             if (state.moreLikeThis.isNotEmpty()) {
@@ -105,7 +118,7 @@ private fun DetailsHeader(
     onBack: () -> Unit,
     onPlay: () -> Unit,
     onToggleMyList: () -> Unit,
-    onDownload: () -> Unit,
+    downloadActions: DownloadActions,
 ) {
     Column(Modifier.fillMaxWidth()) {
         Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
@@ -156,7 +169,9 @@ private fun DetailsHeader(
                     if (state.inMyList) Icons.Filled.Check else Icons.Filled.Add, "My List", "details:mylist", onToggleMyList,
                     description = if (state.inMyList) "In My List" else "Add to My List",
                 )
-                ActionButton(Icons.Filled.Download, "Download", "details:download", onDownload)
+                val downloadState = if (title.isSeries) DownloadRules.seriesState(state.downloads.values.toList(), title.episodes.map { it.id })
+                else DownloadRules.state(state.downloads[title.id])
+                DownloadButton(downloadState, downloadActions, "details:download", idleLabel = if (title.isSeries) "Download all" else "Download")
             }
             Text(title.description, modifier = Modifier.padding(top = 8.dp).testTag("details:description"))
             if (title.cast.isNotEmpty()) {
@@ -210,7 +225,7 @@ private fun EpisodesHeader(seasons: List<Int>, selected: Int, onSelect: (Int) ->
 }
 
 @Composable
-private fun EpisodeItem(ep: Episode, progress: Float?, onClick: () -> Unit) {
+private fun EpisodeItem(ep: Episode, progress: Float?, download: DownloadState, downloadActions: DownloadActions, onClick: () -> Unit) {
     Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 8.dp).testTag("episode:${ep.id}")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.width(128.dp).clip(RoundedCornerShape(4.dp))) {
@@ -231,6 +246,7 @@ private fun EpisodeItem(ep: Episode, progress: Float?, onClick: () -> Unit) {
                 Text("${ep.number}. ${ep.title}", fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(formatDurationShort(ep.media.durationMs), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
             }
+            DownloadButton(download, downloadActions, "episode:download:${ep.id}", showLabel = false)
         }
         if (ep.description.isNotEmpty()) {
             Text(ep.description, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))

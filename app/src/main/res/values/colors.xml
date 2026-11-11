@@ -1,7 +1,4 @@
 <resources>
     <!-- ReelBox brand: deep ink background with an amber-coral accent (original palette). -->
     <color name="rb_background">#FF0B0D12</color>
-    <color name="rb_accent">#FFFF8A3D</color>
-    <color name="rb_accent_dark">#FFE0602A</color>
-    <color name="rb_white">#FFFFFFFF</color>
 </resources>

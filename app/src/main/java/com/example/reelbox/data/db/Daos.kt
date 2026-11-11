@@ -76,3 +76,32 @@ interface RecentSearchDao {
     @Query("DELETE FROM recent_searches WHERE profileId = :profileId")
     suspend fun clear(profileId: Long)
 }
+
+@Dao
+interface DownloadDao {
+    @Query("SELECT * FROM downloads ORDER BY createdAt DESC")
+    fun observeAll(): Flow<List<DownloadEntity>>
+
+    @Query("SELECT * FROM downloads")
+    suspend fun all(): List<DownloadEntity>
+
+    @Query("SELECT * FROM downloads WHERE mediaId = :mediaId")
+    suspend fun get(mediaId: String): DownloadEntity?
+
+    @Upsert
+    suspend fun upsert(entity: DownloadEntity)
+
+    /** Moves the status only from one of [from]; returns rows changed (0 if it was e.g. paused or deleted meanwhile). */
+    @Query("UPDATE downloads SET status = :to, updatedAt = :now WHERE mediaId = :mediaId AND status IN (:from)")
+    suspend fun transition(mediaId: String, from: List<String>, to: String, now: Long): Int
+
+    /** Progress only, never the status, so a pause/cancel that raced with the worker isn't overwritten. */
+    @Query("UPDATE downloads SET bytesDone = :bytesDone, updatedAt = :now WHERE mediaId = :mediaId")
+    suspend fun progress(mediaId: String, bytesDone: Long, now: Long)
+
+    @Query("DELETE FROM downloads WHERE mediaId = :mediaId")
+    suspend fun delete(mediaId: String)
+
+    @Query("DELETE FROM downloads")
+    suspend fun deleteAll()
+}

@@ -88,7 +88,7 @@ fun ReelBoxNavHost(nav: NavHostController) {
                     )
                 }
                 composable(Routes.SEARCH) { SearchScreen(onOpenTitle = openDetails) }
-                composable(Routes.DOWNLOADS) { DownloadsScreen() }
+                composable(Routes.DOWNLOADS) { DownloadsScreen(onPlay = { t, ep -> nav.navigate(Routes.player(t.id, ep?.id, local = true)) }) }
                 composable(Routes.PROFILE) {
                     ProfileScreen(
                         onMyList = { nav.navigate(Routes.MY_LIST) },

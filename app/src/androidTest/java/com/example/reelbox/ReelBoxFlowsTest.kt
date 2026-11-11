@@ -1,12 +1,14 @@
 package com.example.reelbox
 
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
@@ -28,7 +30,7 @@ import org.junit.runner.RunWith
 
 /**
  * End-to-end UI flows on the device (definition of done): home -> details -> play, resume after relaunch,
- * My List add/remove, search. Each test starts from an empty database with a fresh default profile.
+ * My List add/remove, search, download/delete. Each test starts from an empty database with a fresh default profile.
  */
 @OptIn(ExperimentalTestApi::class)
 @RunWith(AndroidJUnit4::class)
@@ -48,11 +50,17 @@ class ReelBoxFlowsTest {
         @JvmStatic @BeforeClass fun allowBackgroundActivityStart() {
             val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
             device.executeShellCommand("appops set ${BuildConfig.APPLICATION_ID} 10021 allow")
+            // The first Download tap asks for the notification permission (Android 13+); the system dialog
+            // would cover the app mid-test, so grant it up front (the prompt itself is checked manually, R9).
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                device.executeShellCommand("pm grant ${BuildConfig.APPLICATION_ID} android.permission.POST_NOTIFICATIONS")
+            }
         }
     }
 
     @Before fun resetData() = runBlocking {
         val c = app.container
+        c.downloadRepository.deleteAll() // stops download work and removes files
         c.database.clearAllTables()
         c.profileRepository.ensureDefaultProfile()
     }
@@ -143,5 +151,48 @@ class ReelBoxFlowsTest {
         compose.onNodeWithTag("search:field").performTextClearance()
         compose.onNodeWithTag("search:field").performTextInput("zzzz")
         compose.waitUntilAtLeastOneExists(hasTestTag("search:noresults"), 5_000)
+    }
+
+    @Test fun downloadPlayAndDelete() {
+        val storage = app.container.downloadStorage
+        launch()
+        compose.onAllNodesWithTag("poster:sintel").onFirst().performClick()
+        compose.waitUntilAtLeastOneExists(hasTestTag("details:download"), 10_000)
+        compose.onNodeWithTag("details:download").performClick()
+        // Progress first, then the finished file and the "Downloaded" state.
+        compose.waitUntil(5_000) { storage.partFile("sintel").length() > 0 || storage.videoFile("sintel").exists() }
+        compose.waitUntil(60_000) { storage.completedVideo("sintel") != null }
+        val expected = app.assets.openFd("media/sintel.mp4").use { it.length }
+        assertTrue("downloaded size", storage.videoFile("sintel").length() == expected)
+        compose.waitUntilAtLeastOneExists(hasContentDescription("Downloaded"), 10_000)
+        pressBack()
+        compose.waitUntilAtLeastOneExists(hasTestTag("tab:downloads"), 10_000)
+        compose.onNodeWithTag("tab:downloads").performClick()
+        compose.waitUntilAtLeastOneExists(hasTestTag("downloads:item:sintel"), 10_000)
+        compose.onNodeWithTag("downloads:size:sintel", useUnmergedTree = true).assertTextEquals(android.text.format.Formatter.formatShortFileSize(app, expected))
+        // Plays the downloaded copy.
+        compose.onNodeWithTag("downloads:item:sintel").performClick()
+        compose.waitUntilAtLeastOneExists(hasTestTag("player:title"), 10_000)
+        pressBack()
+        compose.waitUntilAtLeastOneExists(hasTestTag("downloads:delete:sintel"), 10_000)
+        compose.onNodeWithTag("downloads:delete:sintel").performClick()
+        compose.waitUntilAtLeastOneExists(hasTestTag("downloads:empty"), 10_000)
+        assertTrue("file removed", !storage.videoFile("sintel").exists() && !storage.partFile("sintel").exists())
+    }
+
+    @Test fun seriesDownloadCancelledLeavesNoPartialFiles() {
+        val storage = app.container.downloadStorage
+        val episodes = listOf("sp-s1e1", "sp-s1e2", "sp-s1e3")
+        launch()
+        compose.onAllNodesWithTag("poster:steel-protocol").onFirst().performClick()
+        compose.waitUntilAtLeastOneExists(hasTestTag("details:download"), 10_000)
+        compose.onNodeWithTag("details:download").performClick() // "Download all"
+        compose.waitUntil(10_000) { episodes.any { storage.partFile(it).length() > 0 } }
+        compose.onNodeWithTag("details:download").performClick()
+        compose.waitUntilAtLeastOneExists(androidx.compose.ui.test.hasText("Cancel download"), 5_000)
+        compose.onNodeWithText("Cancel download").performClick()
+        compose.waitUntilAtLeastOneExists(hasContentDescription("Download all"), 10_000)
+        compose.waitUntil(10_000) { storage.dir.listFiles().isNullOrEmpty() }
+        assertTrue(runBlocking { app.container.database.downloads().all() }.isEmpty())
     }
 }
