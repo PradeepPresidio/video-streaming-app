@@ -1,0 +1,11 @@
+<resources>
+    <style name="Theme.ReelBox" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/rb_background</item>
+        <item name="android:statusBarColor">@color/rb_background</item>
+        <item name="android:navigationBarColor">@color/rb_background</item>
+    </style>
+    <style name="Theme.ReelBox.Starting">
+        <item name="android:windowSplashScreenBackground">@color/rb_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    </style>
+</resources>
