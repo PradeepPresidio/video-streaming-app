@@ -24,6 +24,7 @@ import com.example.reelbox.data.catalog.Episode
 import com.example.reelbox.data.catalog.MediaInfo
 import com.example.reelbox.data.catalog.Title
 import com.example.reelbox.data.ProgressRepository
+import com.example.reelbox.data.prefs.SettingsStore
 import com.example.reelbox.domain.PlayerRules
 import com.example.reelbox.domain.ProgressRules
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +32,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -64,6 +66,7 @@ class PlayerViewModel(
     app: Application,
     private val catalogRepository: CatalogRepository,
     private val progressRepository: ProgressRepository,
+    private val settings: SettingsStore,
     /** App-wide scope so the final save on exit completes after this ViewModel is cleared. */
     private val appScope: CoroutineScope,
     private val savedState: SavedStateHandle,
@@ -95,12 +98,15 @@ class PlayerViewModel(
             val title = catalog.title(requireNotNull(savedState.get<String>(ARG_TITLE))) ?: return@launch
             val episodeId = savedState.get<String>(ARG_EPISODE)?.takeIf { it.isNotEmpty() }
             val episode = if (title.isSeries) (episodeId?.let(catalog::episode) ?: title.episodes.first()) else null
-            setSubtitles(savedState[KEY_SUBS] ?: false)
+            // Subtitles: a choice made in this session wins, else the "on by default" setting.
+            setSubtitles(savedState[KEY_SUBS] ?: settings.defaultSubtitles.first())
             // Resume: a position kept across process death wins, else the saved progress (unless finished).
             val startMs = savedState.get<Long>(KEY_POSITION)
                 ?: ProgressRules.startPosition(progressRepository.get(episode?.id ?: title.id))
             load(NowPlaying(title, episode), startMs = startMs)
         }
+        // Settings > Autoplay next episode is honoured live.
+        viewModelScope.launch { settings.autoplayNext.collect(::setAutoplayNext) }
         viewModelScope.launch {
             var tick = 0
             while (isActive) {
@@ -266,7 +272,7 @@ class PlayerViewModel(
         val Factory = viewModelFactory {
             initializer {
                 val c = container
-                PlayerViewModel(this[APPLICATION_KEY]!!, c.catalogRepository, c.progressRepository, c.appScope, createSavedStateHandle())
+                PlayerViewModel(this[APPLICATION_KEY]!!, c.catalogRepository, c.progressRepository, c.settings, c.appScope, createSavedStateHandle())
             }
         }
     }
