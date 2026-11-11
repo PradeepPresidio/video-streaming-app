@@ -1,0 +1,341 @@
+{
+  "version": 1,
+  "credits": [
+    {
+      "film": "Big Buck Bunny",
+      "author": "Blender Foundation",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://peach.blender.org/about/"
+    },
+    {
+      "film": "Elephants Dream",
+      "author": "Orange Open Movie Project, Blender Foundation",
+      "license": "CC BY 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.5/",
+      "url": "https://orange.blender.org/"
+    },
+    {
+      "film": "Sintel",
+      "author": "Blender Foundation (director Colin Levy, producer Ton Roosendaal)",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://durian.blender.org/about/"
+    },
+    {
+      "film": "Tears of Steel",
+      "author": "Blender Foundation / Blender Institute (director Ian Hubert)",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://mango.blender.org/about/"
+    },
+    {
+      "film": "Spring",
+      "author": "Blender Animation Studio (director Andy Goralczyk)",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://studio.blender.org/films/spring/pages/about/"
+    },
+    {
+      "film": "Caminandes 3: Llamigos",
+      "author": "Blender Institute (director Pablo Vazquez)",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://video.blender.org/w/23f3ef79-15dc-44c5-aa45-cf92e78a4509"
+    }
+  ],
+  "titles": [
+    {
+      "id": "spring",
+      "type": "movie",
+      "title": "Spring",
+      "year": 2019,
+      "genres": [
+        "Animation",
+        "Fantasy",
+        "Adventure"
+      ],
+      "maturity": "U/A 7+",
+      "description": "A shepherd girl and her loyal dog face ancient forest spirits to bring back the turning of the seasons.",
+      "cast": [
+        "Spring",
+        "Autumn the Dog",
+        "Andy Goralczyk"
+      ],
+      "featured": true,
+      "trendingRank": 1,
+      "poster": "media/spring_poster.jpg",
+      "backdrop": "media/spring_backdrop.jpg",
+      "video": "media/spring.mp4",
+      "durationMs": 70000,
+      "introStartMs": 0,
+      "introEndMs": 0,
+      "subtitles": null
+    },
+    {
+      "id": "sintel",
+      "type": "movie",
+      "title": "Sintel",
+      "year": 2010,
+      "genres": [
+        "Animation",
+        "Fantasy",
+        "Adventure"
+      ],
+      "maturity": "U/A 13+",
+      "description": "A lonely young woman searches the wild lands for the baby dragon she once rescued and raised.",
+      "cast": [
+        "Halina Reijn",
+        "Thom Hoffman",
+        "Colin Levy"
+      ],
+      "featured": true,
+      "trendingRank": 2,
+      "poster": "media/sintel_poster.jpg",
+      "backdrop": "media/sintel_backdrop.jpg",
+      "video": "media/sintel.mp4",
+      "durationMs": 70000,
+      "introStartMs": 0,
+      "introEndMs": 0,
+      "subtitles": null
+    },
+    {
+      "id": "big-buck-bunny",
+      "type": "movie",
+      "title": "Big Buck Bunny",
+      "year": 2008,
+      "genres": [
+        "Animation",
+        "Comedy",
+        "Kids"
+      ],
+      "maturity": "U",
+      "description": "A gentle giant rabbit's peaceful morning is ruined by three mischievous rodents, and he plans a sweet revenge.",
+      "cast": [
+        "Big Buck Bunny",
+        "Frank",
+        "Rinky",
+        "Gamera"
+      ],
+      "featured": false,
+      "trendingRank": 3,
+      "poster": "media/big-buck-bunny_poster.jpg",
+      "backdrop": "media/big-buck-bunny_backdrop.jpg",
+      "video": "media/big-buck-bunny.mp4",
+      "durationMs": 70000,
+      "introStartMs": 0,
+      "introEndMs": 0,
+      "subtitles": null
+    },
+    {
+      "id": "tears-of-steel",
+      "type": "movie",
+      "title": "Tears of Steel",
+      "year": 2012,
+      "genres": [
+        "Sci-Fi",
+        "Action"
+      ],
+      "maturity": "U/A 16+",
+      "description": "In a future Amsterdam, a group of scientists tries to save the world from destructive robots by revisiting a painful breakup.",
+      "cast": [
+        "Derek de Lint",
+        "Sergio Hasselbaink",
+        "Rogier Schippers",
+        "Vanja Rukavina",
+        "Denise Rebergen"
+      ],
+      "featured": false,
+      "trendingRank": 4,
+      "poster": "media/tears-of-steel_poster.jpg",
+      "backdrop": "media/tears-of-steel_backdrop.jpg",
+      "video": "media/tears-of-steel.mp4",
+      "durationMs": 75000,
+      "introStartMs": 0,
+      "introEndMs": 0,
+      "subtitles": "media/tears-of-steel.srt"
+    },
+    {
+      "id": "elephants-dream",
+      "type": "movie",
+      "title": "Elephants Dream",
+      "year": 2006,
+      "genres": [
+        "Sci-Fi",
+        "Drama"
+      ],
+      "maturity": "U/A 16+",
+      "description": "Two men explore an endless, ever-shifting machine world and disagree about what is real.",
+      "cast": [
+        "Tygo Gernandt",
+        "Cas Jansen",
+        "Bassam Kurdali"
+      ],
+      "featured": false,
+      "trendingRank": 6,
+      "poster": "media/elephants-dream_poster.jpg",
+      "backdrop": "media/elephants-dream_backdrop.jpg",
+      "video": "media/elephants-dream.mp4",
+      "durationMs": 65000,
+      "introStartMs": 0,
+      "introEndMs": 0,
+      "subtitles": null
+    },
+    {
+      "id": "caminandes-llamigos",
+      "type": "movie",
+      "title": "Caminandes: Llamigos",
+      "year": 2016,
+      "genres": [
+        "Animation",
+        "Comedy",
+        "Kids"
+      ],
+      "maturity": "U",
+      "description": "Winter in Patagonia: Koro the llama battles a pesky penguin over the very last berry.",
+      "cast": [
+        "Koro",
+        "Oti",
+        "Pablo Vazquez"
+      ],
+      "featured": false,
+      "trendingRank": 5,
+      "poster": "media/caminandes-llamigos_poster.jpg",
+      "backdrop": "media/caminandes-llamigos_backdrop.jpg",
+      "video": "media/caminandes-llamigos.mp4",
+      "durationMs": 70000,
+      "introStartMs": 0,
+      "introEndMs": 0,
+      "subtitles": null
+    },
+    {
+      "id": "bunny-burrow-tales",
+      "type": "series",
+      "title": "Bunny Burrow Tales",
+      "year": 2025,
+      "genres": [
+        "Animation",
+        "Kids",
+        "Comedy"
+      ],
+      "maturity": "U",
+      "description": "Short meadow adventures of a big-hearted rabbit and the troublemakers next door.",
+      "cast": [
+        "Big Buck Bunny",
+        "Frank",
+        "Rinky",
+        "Gamera"
+      ],
+      "featured": false,
+      "trendingRank": 7,
+      "poster": "media/bunny-burrow-tales_poster.jpg",
+      "backdrop": "media/bunny-burrow-tales_backdrop.jpg",
+      "episodes": [
+        {
+          "id": "bbt-s1e1",
+          "season": 1,
+          "number": 1,
+          "title": "A Butterfly Morning",
+          "description": "The bunny wakes up to a perfect day in the meadow.",
+          "thumbnail": "media/bbt-s1e1_thumb.jpg",
+          "video": "media/bbt-s1e1.mp4",
+          "durationMs": 50000,
+          "introStartMs": 0,
+          "introEndMs": 12000,
+          "subtitles": null
+        },
+        {
+          "id": "bbt-s1e2",
+          "season": 1,
+          "number": 2,
+          "title": "Trouble in the Trees",
+          "description": "Three rodents decide the bunny is the perfect target.",
+          "thumbnail": "media/bbt-s1e2_thumb.jpg",
+          "video": "media/bbt-s1e2.mp4",
+          "durationMs": 50000,
+          "introStartMs": 0,
+          "introEndMs": 12000,
+          "subtitles": null
+        },
+        {
+          "id": "bbt-s1e3",
+          "season": 1,
+          "number": 3,
+          "title": "The Big Plan",
+          "description": "Enough is enough: the bunny builds his traps.",
+          "thumbnail": "media/bbt-s1e3_thumb.jpg",
+          "video": "media/bbt-s1e3.mp4",
+          "durationMs": 50000,
+          "introStartMs": 0,
+          "introEndMs": 12000,
+          "subtitles": null
+        }
+      ]
+    },
+    {
+      "id": "steel-protocol",
+      "type": "series",
+      "title": "Steel Protocol",
+      "year": 2026,
+      "genres": [
+        "Sci-Fi",
+        "Action",
+        "Drama"
+      ],
+      "maturity": "A",
+      "description": "A last-stand team in a ruined city races to rewrite one memory before the machines win.",
+      "cast": [
+        "Derek de Lint",
+        "Sergio Hasselbaink",
+        "Rogier Schippers",
+        "Vanja Rukavina",
+        "Denise Rebergen"
+      ],
+      "featured": true,
+      "trendingRank": 8,
+      "poster": "media/steel-protocol_poster.jpg",
+      "backdrop": "media/steel-protocol_backdrop.jpg",
+      "episodes": [
+        {
+          "id": "sp-s1e1",
+          "season": 1,
+          "number": 1,
+          "title": "The Oude Kerk",
+          "description": "The team gathers in the church and briefs the plan.",
+          "thumbnail": "media/sp-s1e1_thumb.jpg",
+          "video": "media/sp-s1e1.mp4",
+          "durationMs": 55000,
+          "introStartMs": 0,
+          "introEndMs": 10000,
+          "subtitles": "media/sp-s1e1.srt"
+        },
+        {
+          "id": "sp-s1e2",
+          "season": 1,
+          "number": 2,
+          "title": "Bridge Point",
+          "description": "The machines close in while the simulation boots.",
+          "thumbnail": "media/sp-s1e2_thumb.jpg",
+          "video": "media/sp-s1e2.mp4",
+          "durationMs": 55000,
+          "introStartMs": 0,
+          "introEndMs": 10000,
+          "subtitles": "media/sp-s1e2.srt"
+        },
+        {
+          "id": "sp-s1e3",
+          "season": 1,
+          "number": 3,
+          "title": "Second Chance",
+          "description": "One memory, one conversation, one last try.",
+          "thumbnail": "media/sp-s1e3_thumb.jpg",
+          "video": "media/sp-s1e3.mp4",
+          "durationMs": 50000,
+          "introStartMs": 0,
+          "introEndMs": 10000,
+          "subtitles": "media/sp-s1e3.srt"
+        }
+      ]
+    }
+  ]
+}

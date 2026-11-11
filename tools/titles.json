@@ -1,0 +1,98 @@
+{
+  "_comment": "Source metadata for tools/prepare_media.sh. Clip times are seconds into the source film. Licences were checked on each film's official page (see credits[].licenseSource).",
+  "sources": {
+    "bbb": "https://video.blender.org/download/web-videos/bf1f3fb5-b119-4f9f-9930-8e20e892b898-480.mp4",
+    "sintel": "https://video.blender.org/download/web-videos/0eb052d0-fd51-43e6-aa33-ecdbf77a5d40-480.mp4",
+    "tos": "https://video.blender.org/download/web-videos/8533ea43-4271-4a57-9694-e9d0b35e1aa1-480.mp4",
+    "ed": "https://video.blender.org/download/web-videos/cccc3e60-0291-4ecc-aa56-39b2e2c7d0d5-480.mp4",
+    "spring": "https://video.blender.org/download/web-videos/3d95fb3d-c866-42c8-9db1-fe82f48ccb95-480.mp4",
+    "caminandes3": "https://video.blender.org/download/web-videos/23f3ef79-15dc-44c5-aa45-cf92e78a4509-480.mp4"
+  },
+  "subtitleSources": {
+    "tos": "https://download.blender.org/demo/movies/ToS/subtitles/TOS-en.srt"
+  },
+  "credits": [
+    {"film": "Big Buck Bunny", "author": "Blender Foundation", "license": "CC BY 3.0", "licenseUrl": "https://creativecommons.org/licenses/by/3.0/", "url": "https://peach.blender.org/about/", "licenseSource": "peach.blender.org/about: 'licensed under the Creative Commons Attribution 3.0 license'"},
+    {"film": "Elephants Dream", "author": "Orange Open Movie Project, Blender Foundation", "license": "CC BY 2.5", "licenseUrl": "https://creativecommons.org/licenses/by/2.5/", "url": "https://orange.blender.org/", "licenseSource": "orange.blender.org: released under Creative Commons Attribution 2.5"},
+    {"film": "Sintel", "author": "Blender Foundation (director Colin Levy, producer Ton Roosendaal)", "license": "CC BY 3.0", "licenseUrl": "https://creativecommons.org/licenses/by/3.0/", "url": "https://durian.blender.org/about/", "licenseSource": "durian.blender.org/about: 'Sintel is licensed as Creative Commons Attribution 3.0'"},
+    {"film": "Tears of Steel", "author": "Blender Foundation / Blender Institute (director Ian Hubert)", "license": "CC BY 3.0", "licenseUrl": "https://creativecommons.org/licenses/by/3.0/", "url": "https://mango.blender.org/about/", "licenseSource": "mango.blender.org/about: 'Tears of Steel is licensed as Creative Commons Attribution 3.0'. English subtitles from download.blender.org/demo/movies/ToS/subtitles"},
+    {"film": "Spring", "author": "Blender Animation Studio (director Andy Goralczyk)", "license": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/", "url": "https://studio.blender.org/films/spring/pages/about/", "licenseSource": "studio.blender.org/films/spring/pages/about: 'released under the Creative Commons Attribution 4.0 license'"},
+    {"film": "Caminandes 3: Llamigos", "author": "Blender Institute (director Pablo Vazquez)", "license": "CC BY 4.0", "licenseUrl": "https://creativecommons.org/licenses/by/4.0/", "url": "https://video.blender.org/w/23f3ef79-15dc-44c5-aa45-cf92e78a4509", "licenseSource": "Official Blender video page lists licence 'Attribution' (CC BY)"}
+  ],
+  "titles": [
+    {
+      "id": "spring", "type": "movie", "title": "Spring", "year": 2019,
+      "genres": ["Animation", "Fantasy", "Adventure"], "maturity": "U/A 7+",
+      "description": "A shepherd girl and her loyal dog face ancient forest spirits to bring back the turning of the seasons.",
+      "cast": ["Spring", "Autumn the Dog", "Andy Goralczyk"],
+      "featured": true, "trendingRank": 1,
+      "clip": {"source": "spring", "start": 40, "duration": 70, "posterAt": 30, "introEnd": 0}
+    },
+    {
+      "id": "sintel", "type": "movie", "title": "Sintel", "year": 2010,
+      "genres": ["Animation", "Fantasy", "Adventure"], "maturity": "U/A 13+",
+      "description": "A lonely young woman searches the wild lands for the baby dragon she once rescued and raised.",
+      "cast": ["Halina Reijn", "Thom Hoffman", "Colin Levy"],
+      "featured": true, "trendingRank": 2,
+      "clip": {"source": "sintel", "start": 120, "duration": 70, "posterAt": 20, "introEnd": 0}
+    },
+    {
+      "id": "big-buck-bunny", "type": "movie", "title": "Big Buck Bunny", "year": 2008,
+      "genres": ["Animation", "Comedy", "Kids"], "maturity": "U",
+      "description": "A gentle giant rabbit's peaceful morning is ruined by three mischievous rodents, and he plans a sweet revenge.",
+      "cast": ["Big Buck Bunny", "Frank", "Rinky", "Gamera"],
+      "featured": false, "trendingRank": 3,
+      "clip": {"source": "bbb", "start": 60, "duration": 70, "posterAt": 40, "introEnd": 0}
+    },
+    {
+      "id": "tears-of-steel", "type": "movie", "title": "Tears of Steel", "year": 2012,
+      "genres": ["Sci-Fi", "Action"], "maturity": "U/A 16+",
+      "description": "In a future Amsterdam, a group of scientists tries to save the world from destructive robots by revisiting a painful breakup.",
+      "cast": ["Derek de Lint", "Sergio Hasselbaink", "Rogier Schippers", "Vanja Rukavina", "Denise Rebergen"],
+      "featured": false, "trendingRank": 4,
+      "clip": {"source": "tos", "start": 20, "duration": 75, "posterAt": 12, "introEnd": 0, "subtitles": "tos"}
+    },
+    {
+      "id": "elephants-dream", "type": "movie", "title": "Elephants Dream", "year": 2006,
+      "genres": ["Sci-Fi", "Drama"], "maturity": "U/A 16+",
+      "description": "Two men explore an endless, ever-shifting machine world and disagree about what is real.",
+      "cast": ["Tygo Gernandt", "Cas Jansen", "Bassam Kurdali"],
+      "featured": false, "trendingRank": 6,
+      "clip": {"source": "ed", "start": 100, "duration": 65, "posterAt": 20, "introEnd": 0}
+    },
+    {
+      "id": "caminandes-llamigos", "type": "movie", "title": "Caminandes: Llamigos", "year": 2016,
+      "genres": ["Animation", "Comedy", "Kids"], "maturity": "U",
+      "description": "Winter in Patagonia: Koro the llama battles a pesky penguin over the very last berry.",
+      "cast": ["Koro", "Oti", "Pablo Vazquez"],
+      "featured": false, "trendingRank": 5,
+      "clip": {"source": "caminandes3", "start": 20, "duration": 70, "posterAt": 25, "introEnd": 0}
+    },
+    {
+      "id": "bunny-burrow-tales", "type": "series", "title": "Bunny Burrow Tales", "year": 2025,
+      "genres": ["Animation", "Kids", "Comedy"], "maturity": "U",
+      "description": "Short meadow adventures of a big-hearted rabbit and the troublemakers next door.",
+      "cast": ["Big Buck Bunny", "Frank", "Rinky", "Gamera"],
+      "featured": false, "trendingRank": 7,
+      "posterAt": {"source": "bbb", "start": 300},
+      "episodes": [
+        {"id": "bbt-s1e1", "season": 1, "number": 1, "title": "A Butterfly Morning", "description": "The bunny wakes up to a perfect day in the meadow.", "clip": {"source": "bbb", "start": 150, "duration": 50, "introEnd": 12}},
+        {"id": "bbt-s1e2", "season": 1, "number": 2, "title": "Trouble in the Trees", "description": "Three rodents decide the bunny is the perfect target.", "clip": {"source": "bbb", "start": 260, "duration": 50, "introEnd": 12}},
+        {"id": "bbt-s1e3", "season": 1, "number": 3, "title": "The Big Plan", "description": "Enough is enough: the bunny builds his traps.", "clip": {"source": "bbb", "start": 400, "duration": 50, "introEnd": 12}}
+      ]
+    },
+    {
+      "id": "steel-protocol", "type": "series", "title": "Steel Protocol", "year": 2026,
+      "genres": ["Sci-Fi", "Action", "Drama"], "maturity": "A",
+      "description": "A last-stand team in a ruined city races to rewrite one memory before the machines win.",
+      "cast": ["Derek de Lint", "Sergio Hasselbaink", "Rogier Schippers", "Vanja Rukavina", "Denise Rebergen"],
+      "featured": true, "trendingRank": 8,
+      "posterAt": {"source": "tos", "start": 300},
+      "episodes": [
+        {"id": "sp-s1e1", "season": 1, "number": 1, "title": "The Oude Kerk", "description": "The team gathers in the church and briefs the plan.", "clip": {"source": "tos", "start": 185, "duration": 55, "introEnd": 10, "subtitles": "tos"}},
+        {"id": "sp-s1e2", "season": 1, "number": 2, "title": "Bridge Point", "description": "The machines close in while the simulation boots.", "clip": {"source": "tos", "start": 290, "duration": 55, "introEnd": 10, "subtitles": "tos"}},
+        {"id": "sp-s1e3", "season": 1, "number": 3, "title": "Second Chance", "description": "One memory, one conversation, one last try.", "clip": {"source": "tos", "start": 355, "duration": 50, "introEnd": 10, "subtitles": "tos"}}
+      ]
+    }
+  ]
+}

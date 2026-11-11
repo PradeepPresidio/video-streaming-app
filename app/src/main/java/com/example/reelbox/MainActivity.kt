@@ -1,5 +1,6 @@
 package com.example.reelbox
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,24 +20,36 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.rememberNavController
+import com.example.reelbox.ui.navigation.ReelBoxNavHost
 import com.example.reelbox.ui.theme.RbAccent
 import com.example.reelbox.ui.theme.ReelBoxTheme
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalComposeUiApi::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_ReelBox)
         super.onCreate(savedInstanceState)
+        // Phone portrait browsing; PlayerScreen switches to landscape while it is shown.
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         setContent {
             ReelBoxTheme {
-                var showSplash by rememberSaveable { mutableStateOf(true) }
-                LaunchedEffect(Unit) { delay(900); showSplash = false }
-                if (showSplash) SplashContent() else PlaceholderHome()
+              // Expose Compose testTags as resource-ids so adb/uiautomator checks can find nodes.
+              Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
+                // Skip the splash when restoring after process death or recreation.
+                var showSplash by rememberSaveable { mutableStateOf(savedInstanceState == null) }
+                LaunchedEffect(Unit) { if (showSplash) { delay(900); showSplash = false } }
+                if (showSplash) SplashContent() else ReelBoxNavHost(rememberNavController())
+              }
             }
         }
     }
@@ -52,9 +65,3 @@ fun SplashContent() {
     }
 }
 
-@Composable
-private fun PlaceholderHome() {
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
-        Text("Home", color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp)
-    }
-}
