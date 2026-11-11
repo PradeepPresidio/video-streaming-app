@@ -16,7 +16,7 @@ Test commands:
 | R4 | Video player | P0 | passed | verification/R4-1-controls.png, R4-autohide-pair.png, R4-2-plus20.png, R4-3-speedmenu.png, R4-3-speed2x.png, R4-3-speed-log.txt, R4-4-subtitles.png, R4-lock-doubletap-pair.png, R4-5-skipintro.png, R4-6-pair.png, R4-6-ep2-started.png, R4-6-cancelled-end.png, R4-7-pip.png, R4-7-pip-later.png, R4-7-pip-pair.png, R4-8-rotated.png, R4-8-portrait.png, R4-back-to-details.png, R4-paused-ui.xml | 1) landscape + all controls. 2) +10s x2: pos 5639->25639 (+20.0s), label 0:25. 3) 2x label; 5.1s wall -> +10.1s (ratio 1.98). 4) ToS subs on: cue text visible. 5) E1 at 0:02 Skip Intro shown; tap -> pos 10000 (intro end). 6) seek 0:40 of E1: countdown 10..1 then sp-s1e2 starts; Cancel on E2 -> ends w/o autoplay. 7) Home -> task mode=pinned, pos 8.2s->13.2s playing in PiP. 8) wm user-rotation 1->3->0->1 while playing: pos 24.3->35.4s, 0 reloads. Also: auto-hide 3s, lock blocks double-tap, double-tap +-10s, back arrow -> details portrait. No FATAL/ANR. Position save on back is implemented in R5 |
 | R5 | Continue Watching and resume | P0 | passed | verification/R5-1-cw.png, R5-2-resumed.png, R5-2-details-resume.png, R5-3-before.png, R5-3-finished.png, R5-3-series-details.png, R5-3-series-next.png, R5-4-longpress.png, R5-4-removed.png, R5-3-4-triple.png, R5-episode-progress.png | 1) 30 s of Sintel + back: CW first row, partial bar (save pos=29500). 2) force-stop while playing at 57648 ms (last periodic save 57390) -> relaunch, tap CW card -> `play Sintel start=57390` (0.26 s off). Details shows Resume + '1m 3s left'. 3) ToS seek to 97% and finish -> CW row gone; Sintel also dropped after natural finish. Series: BBT E1 finished (countdown cancelled) -> details 'Play S1:E2', CW card opens `bbt-s1e2`. 4) long-press -> dialog -> Remove -> CW row gone. Episode progress bar on details confirmed. No FATAL/ANR |
 | R6 | My List | P0 | passed | verification/R6-1-two.png, R6-1-details-check.png, R6-1-pair.png, R6-2-persisted.png, R6-2-profile-mylist.png, R6-3-removed.png, R6-2-3-triple.png | Clean data: add Spring via hero, Sintel via details -> My List row `sintel spring` (newest first), hero '✓ My List' (content-desc 'In My List'), details ✓. force-stop+relaunch -> row unchanged; Profile > My List grid same order. Remove Spring via hero -> row `sintel`. No FATAL/ANR |
-| R7 | Search | P0 | not started | | |
+| R7 | Search | P0 | passed | verification/R7-0-empty.png, R7-1-title.png, R7-2-genre.png, R7-3-none.png, R7-1-2-3-triple.png, R7-4-recent.png, R7-4-cleared.png, R7-4-recent-max5.png | 1) 'sint' -> sintel. 2) 'Comedy' -> big-buck-bunny, bunny-burrow-tales, caminandes-llamigos = exactly catalog Comedy titles. 3) 'zzzz' -> 'No results for “zzzz”'. 4) Home then back to Search: recent zzzz|Comedy|sint; tapping recent re-runs; Clear empties; 6 queries -> 5 kept (oldest dropped). Empty query shows Top searches grid. No FATAL/ANR |
 | R8 | Robustness and performance | P0 | not started | | |
 | R9 | Downloads | P1 | not started | | |
 | R10 | Profiles | P1 | not started | | |
@@ -27,6 +27,7 @@ Test commands:
 - R1: tools/prepare_media.sh, tools/titles.json, tools/MediaTool.java, app/src/main/assets/catalog.json (media/ gitignored),
   data/catalog/*, domain/HomeRowsBuilder.kt, ui/{home,components,navigation,profile,settings,search,downloads}/*,
   player/{PlayerViewModel,PlayerScreen}.kt, ReelBoxApp.kt, AppContainer.kt, scripts/ui.sh (adb tap-by-tag helper)
+- R7: domain/SearchEngine.kt (+test), data/SearchRepository.kt, ui/search/{SearchViewModel,SearchScreen}.kt
 - R6: data/MyListRepository.kt, ui/mylist/MyListScreen.kt, Profile > My List entry, hero/details toggles, Home My List row
 - R5: data/db/{Entities,Daos,ReelBoxDatabase}.kt (+app/schemas), data/prefs/SettingsStore.kt, data/{ProfileRepository,ProgressRepository}.kt, domain/ProgressRules.kt (+test), AppContainer (appScope, DB), HomeViewModel/HomeScreen (CW row, remove dialog), DetailsViewModel (resume target, episode progress), PlayerViewModel (resume start, saves every 5 s/stop/end/exit)
 - R4: player/{PlayerViewModel,PlayerScreen}.kt (custom controls, PiP, lock, speed, subs, skip intro, next-episode), domain/PlayerRules.kt (+test), MainActivity (enableEdgeToEdge, onUserLeaveHint PiP), scripts/player-helpers.sh
@@ -39,6 +40,8 @@ Test commands:
 - Media: `bash tools/prepare_media.sh` (needs ~560 MB cache in tools/.cache; ~5 min).
 
 ## Assumptions
+- A search counts as 'recent' when submitted, when a result is opened, or after the query is unchanged for 1.5 s (min 2 chars).
+- A query equal to a genre name returns only that genre; otherwise substring match on title/genre/cast.
 - Continue Watching 'Remove' deletes that title's progress for the profile (episode bars reset too).
 - A default profile 'Me' is created on first launch; all progress/My List/recent searches are keyed by profile (R10).
 - Films: Big Buck Bunny, Elephants Dream, Sintel, Tears of Steel, Spring, Caminandes 3: Llamigos (licences confirmed on the
@@ -59,3 +62,4 @@ Test commands:
 - Without enableEdgeToEdge() the landscape window extends under the hidden nav bar but Compose insets are 0;
   controls there get empty bounds in dumps. The player pads overlays by navigationBarsIgnoringVisibility+displayCutout.
 - PiP works on this Xiaomi without extra permission.
+- SwiftKey (default IME) occasionally drops the last char of `adb shell input text` when commands are chained; read the field back before asserting.

@@ -70,7 +70,7 @@ fun ReelBoxNavHost(nav: NavHostController) {
                         onOpenTitle = openDetails,
                     )
                 }
-                composable(Routes.SEARCH) { SearchScreen() }
+                composable(Routes.SEARCH) { SearchScreen(onOpenTitle = openDetails) }
                 composable(Routes.DOWNLOADS) { DownloadsScreen() }
                 composable(Routes.PROFILE) { ProfileScreen(onMyList = { nav.navigate(Routes.MY_LIST) }, onSettings = { nav.navigate(Routes.SETTINGS) }) }
                 composable(Routes.MY_LIST) { MyListScreen(onBack = { nav.popBackStack() }, onOpenTitle = openDetails) }
