@@ -12,9 +12,11 @@ import com.example.reelbox.data.db.DownloadDao
 import com.example.reelbox.data.db.DownloadEntity
 import com.example.reelbox.domain.DownloadItem
 import com.example.reelbox.domain.DownloadStatus
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /** Starts, pauses, resumes, cancels and deletes downloads. Downloads are device-wide (shared by profiles). */
 class DownloadRepository(
@@ -61,8 +63,12 @@ class DownloadRepository(
         }
     }
 
-    /** Cancels (or deletes) one item: stops its work and removes its files, partial or complete. */
-    suspend fun remove(mediaId: String) {
+    /**
+     * Cancels (or deletes) one item: stops its work and removes its files, partial or complete.
+     * Non-cancellable: once the work is cancelled, the caller leaving (e.g. Back clears the ViewModel while
+     * waiting for the worker's lock) must not strand a .part file and a row with no worker behind it.
+     */
+    suspend fun remove(mediaId: String): Unit = withContext(NonCancellable) {
         workManager.cancelUniqueWork(workName(mediaId))
         DownloadLocks.of(mediaId).withLock {
             val freed = storage.delete(mediaId)
@@ -75,15 +81,17 @@ class DownloadRepository(
     suspend fun resumeTitle(titleId: String) = rowsOf(titleId).filter { it.status == DownloadStatus.PAUSED.name }.forEach { resume(it.mediaId) }
 
     /** Cancels a series download: every episode not yet finished is stopped and its partial file removed. */
-    suspend fun cancelTitle(titleId: String) = rowsOf(titleId).filter { it.status != DownloadStatus.DONE.name }.forEach { remove(it.mediaId) }
+    suspend fun cancelTitle(titleId: String): Unit = withContext(NonCancellable) {
+        rowsOf(titleId).filter { it.status != DownloadStatus.DONE.name }.forEach { remove(it.mediaId) }
+    }
 
-    /** Settings > Delete all downloads. Returns the bytes freed. */
-    suspend fun deleteAll(): Long {
+    /** Settings > Delete all downloads. Returns the bytes freed. Non-cancellable for the same reason as [remove]. */
+    suspend fun deleteAll(): Long = withContext(NonCancellable) {
         val ids = dao.all().map { it.mediaId }
         workManager.cancelAllWorkByTag(WORK_TAG)
         ids.forEach { id -> DownloadLocks.of(id).withLock { dao.delete(id) } }
         dao.deleteAll()
-        return storage.deleteAll()
+        storage.deleteAll()
     }
 
     /** The downloaded video file for [mediaId], if complete. */

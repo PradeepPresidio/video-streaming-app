@@ -23,6 +23,22 @@ Test commands:
 | R10 | Profiles | P1 | passed | verification/R10-0-picker-initial.png, R10-1-form-A.png, R10-1-form-Kids.png, R10-1-pair.png, R10-2-pair.png, R10-3-kids-search.png, R10-4-triple.png, R10-max5.png, R10-rename.png, R10-regression/report.txt | 1) picker: created A and Kids (Kids switch on, KIDS badge). 2) A: My List=Spring, CW=Sintel; switch to Kids -> Home rows `trending new genre:Animation` (no CW/My List), cyan accent. 3) Kids Home shows exactly the U/U-A 7+ set {big-buck-bunny, bunny-burrow-tales, caminandes-llamigos, spring}; top searches filtered; 'Steel'/'Protocol'(A)/'Sintel'/'Sci-Fi' -> no results. 4) Manage > A > Delete: picker = Me, Kids; DB rows for A (progress 1, my_list 1) -> 0 via FK cascade; Me shows no CW/My List. Also: 5-profile cap hides Add, rename works. Instrumented 5/5 (incl. kids test) |
 | R11 | Settings | P1 | passed | verification/R11-1-settings-autoplay-off.png, R11-1-pair.png, R11-2-settings.png, R11-2-pair.png, R11-3-pair.png | 1) Autoplay off -> SP E1 played from 0:40 to end: 0 countdown state lines, 0 new play lines, ended=true on sp-s1e1 (no overlay in screenshots). 2) Subtitles on by default -> ToS started without tapping CC: CC highlighted at 0:02, cue 'Look Celia, we have to follow our passions;' visible, subs=true. Delete all downloads: 2.1 MB dummy file -> 'Using 0 B', files/downloads empty. Credits + version 1.0.0 present. No FATAL/ANR |
 
+## Final check (2026-11-12)
+- `./gradlew clean assembleDebug testDebugUnitTest lintDebug`: pass; 43 unit tests, 0 failures; lint 0 errors.
+- `adb uninstall` + clean install, `bash scripts/runthrough.sh final`: 29/29 PASS, `RESULT: 0 failure(s)`, no FATAL/ANR (verification/final/report.txt, r*.png). Cold start median 378 ms.
+- P1 checks in airplane mode on the same install (verification/final/p1-*.png):
+  - Picker shown on launch. Sintel Download → notification prompt on first tap (download continues behind it) → "Downloaded"; `sintel.mp4` 7,817,253 B = asset.
+  - Downloads tab "1 downloaded · Using 7.8 MB"; tap → `play Sintel uri=file:///data/user/0/com.example.reelbox/files/downloads/sintel.mp4`, position advanced.
+  - Delete → empty state, dir empty.
+  - Settings shows autoplay, subtitles, downloads used/delete, credits, version. Switch profile → picker.
+  - No FATAL/ANR.
+- `./gradlew connectedDebugAndroidTest`: 8/8 pass after the review fixes (homeToDetailsToPlay, resumeAfterRelaunch, myListAddAndRemove, searchTitleGenreAndNoResults, kidsProfileSeesOnlyKidsTitles, downloadPlayAndDelete, seriesDownloadCancelledLeavesNoPartialFiles, cancelCompletesWhenCallerIsCancelled).
+- Diff review (review subagent over `git diff 8f835cf HEAD` vs requirements.md): no high-severity gaps; all R0–R11 criteria implemented. Fixed:
+  1. (medium) Cancel/Delete ran in viewModelScope; leaving the screen while `remove()` waited for the worker's lock could strand `.part` files and a QUEUED/RUNNING row with no worker. `DownloadRepository.remove/cancelTitle/deleteAll` now run in `withContext(NonCancellable)`. New test `cancelCompletesWhenCallerIsCancelled` fails on the old code (files left after 10 s) and passes on the new.
+  2. (low) `resumeAfterRelaunch` only checked a lower bound: now ±5 s. It relaunches the activity, not the process: an instrumented test can't force-stop its own process. The real `am force-stop` resume is checked by `scripts/runthrough.sh` (R5 "resume after force-stop (±5 s)": left at 51244, resumed 51244).
+  3. (low) Removed the unused `androidx.lifecycle:lifecycle-process` dependency (not in §2).
+- After the fixes: assembleDebug, 43 unit tests, lintDebug 0 errors, 8/8 instrumented, APK reinstalled.
+
 ## Modified files
 - R9: domain/DownloadRules.kt (+test), data/db (DownloadEntity/DownloadDao, DB v2 AutoMigration, app/schemas/2.json), data/download/{DownloadWorker,DownloadRepository,DownloadStorage,DownloadLocks,DownloadNotifications}.kt, res/drawable/ic_stat_download.xml, AndroidManifest (FGS dataSync, POST_NOTIFICATIONS, SystemForegroundService), ui/components/DownloadButton.kt, ui/details (download state, Download all, per-episode buttons), ui/downloads/DownloadsScreen.kt (+VM), player plays file:// copy when opened from Downloads (`local` arg), Settings delete-all via repository, ReelBoxFlowsTest (+2 tests), lint fixes (Media3 @UnstableApi opt-in, unused seek increments/colours)
 - Gradle project scaffold (settings/build/gradle.properties/libs.versions.toml/wrapper 8.7), app module, scripts/env.sh

@@ -19,6 +19,7 @@ import androidx.test.uiautomator.UiDevice
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.reelbox.util.formatTime
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertTrue
@@ -98,7 +99,9 @@ class ReelBoxFlowsTest {
         Thread.sleep(7_000) // past the first periodic save (5 s)
         pressBack()
         compose.waitUntilAtLeastOneExists(hasTestTag("details:sintel"), 10_000)
-        scenario!!.close() // activity destroyed; relaunch reads progress from the database
+        // The activity is destroyed and relaunched; progress is read back from the database. A real force-stop
+        // would kill this instrumentation process too, so that case is checked by scripts/runthrough.sh (R5, am force-stop).
+        scenario!!.close()
         launch()
         compose.waitUntilAtLeastOneExists(hasTestTag("row:continue"), 10_000)
         compose.onAllNodesWithTag("poster:sintel").onFirst().performClick() // first Sintel card = Continue Watching
@@ -108,7 +111,8 @@ class ReelBoxFlowsTest {
         val elapsed = compose.onNodeWithTag("player:elapsed").fetchSemanticsNode()
             .config[androidx.compose.ui.semantics.SemanticsProperties.Text].joinToString { it.text }
         val (m, s) = elapsed.split(":").map { it.toInt() }
-        assertTrue("resumed at $elapsed, saved ${formatTime(saved.positionMs)}", (m * 60 + s) * 1000L >= saved.positionMs - 5_000)
+        val resumedMs = (m * 60 + s) * 1000L
+        assertTrue("resumed at $elapsed, saved ${formatTime(saved.positionMs)}", kotlin.math.abs(resumedMs - saved.positionMs) <= 5_000)
     }
 
     @Test fun myListAddAndRemove() {
@@ -194,5 +198,23 @@ class ReelBoxFlowsTest {
         compose.waitUntilAtLeastOneExists(hasContentDescription("Download all"), 10_000)
         compose.waitUntil(10_000) { storage.dir.listFiles().isNullOrEmpty() }
         assertTrue(runBlocking { app.container.database.downloads().all() }.isEmpty())
+    }
+
+    /** Leaving the screen mid-cancel (its ViewModel scope is cancelled) must still finish removing everything. */
+    @Test fun cancelCompletesWhenCallerIsCancelled() {
+        val c = app.container
+        val episodes = listOf("sp-s1e1", "sp-s1e2", "sp-s1e3")
+        launch()
+        val title = runBlocking { c.catalogRepository.catalog().title("steel-protocol")!! }
+        runBlocking { c.downloadRepository.startAll(title) }
+        compose.waitUntil(10_000) { episodes.all { c.downloadStorage.partFile(it).length() > 0 } }
+        runBlocking {
+            val caller = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default)
+            val job = caller.launch { c.downloadRepository.cancelTitle(title.id) }
+            kotlinx.coroutines.delay(20) // inside cancelTitle, waiting for the first worker to release its lock
+            job.cancel()
+        }
+        compose.waitUntil(10_000) { c.downloadStorage.dir.listFiles().isNullOrEmpty() }
+        compose.waitUntil(5_000) { runBlocking { c.database.downloads().all() }.isEmpty() }
     }
 }
