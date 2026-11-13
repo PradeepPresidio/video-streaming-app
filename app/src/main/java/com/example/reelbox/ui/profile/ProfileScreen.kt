@@ -3,6 +3,8 @@ package com.example.reelbox.ui.profile
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -19,6 +21,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -27,6 +31,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.reelbox.R
 import com.example.reelbox.container
 import com.example.reelbox.data.ProfileRepository
 import com.example.reelbox.data.db.ProfileEntity
@@ -81,6 +86,14 @@ fun ProfileScreen(
             leadingContent = { Icon(Icons.AutoMirrored.Filled.Logout, null) },
             modifier = Modifier.clickable(onClick = onSwitchProfile).testTag("profile:switch"),
             colors = colors,
+        )
+        Spacer(Modifier.weight(1f))
+        Text(
+            stringResource(R.string.company_name),
+            modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("profile:company"),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
         )
     }
 }

@@ -11,3 +11,11 @@ local.properties
 .kotlin/
 captures/
 tools/.cache/
+
+# Release signing (never commit)
+keystore/
+keystore.properties
+*.jks
+*.keystore
+# Release APK copied to the project root
+/*.apk

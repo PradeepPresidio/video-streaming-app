@@ -39,6 +39,14 @@ Test commands:
   3. (low) Removed the unused `androidx.lifecycle:lifecycle-process` dependency (not in §2).
 - After the fixes: assembleDebug, 43 unit tests, lintDebug 0 errors, 8/8 instrumented, APK reinstalled.
 
+## Signed release build (2026-11-13)
+- `./gradlew assembleRelease` signs with `keystore/reelbox-release.jks` (RSA 4096, 10000 days, DN `CN=NMM Softwares, O=NMM Softwares`); credentials in `keystore.properties`. Both are gitignored: back them up, since updates must be signed with the same key.
+- Release package name is `com.nmmsoftwares.reelbox`, set via `androidComponents.onVariants` in app/build.gradle.kts. Debug stays `com.example.reelbox` (requirements.md, scripts, tests). Minify is off.
+- `apksigner verify`: v2 signature, 1 signer, cert SHA-256 8fd85de0…d67cb4; not debuggable; startup provider authority `com.nmmsoftwares.reelbox.androidx-startup`.
+- Copied to the project root as `ReelBox-1.0.0-release.apk` (gitignored `/*.apk`).
+- "NMM Softwares" (string `company_name`): splash bottom shows "from / NMM Softwares" (`splash:company`); Profile tab bottom shows it (`profile:company`).
+- On device (release install): verification/release/splash.png, profile.png, playing.png. Sintel download done (7817253 B), playback `play Sintel uri=asset:///media/sintel.mp4`, no FATAL/ANR. Debug: unit tests, lintDebug 0 errors, connectedDebugAndroidTest 8/8.
+
 ## Modified files
 - R9: domain/DownloadRules.kt (+test), data/db (DownloadEntity/DownloadDao, DB v2 AutoMigration, app/schemas/2.json), data/download/{DownloadWorker,DownloadRepository,DownloadStorage,DownloadLocks,DownloadNotifications}.kt, res/drawable/ic_stat_download.xml, AndroidManifest (FGS dataSync, POST_NOTIFICATIONS, SystemForegroundService), ui/components/DownloadButton.kt, ui/details (download state, Download all, per-episode buttons), ui/downloads/DownloadsScreen.kt (+VM), player plays file:// copy when opened from Downloads (`local` arg), Settings delete-all via repository, ReelBoxFlowsTest (+2 tests), lint fixes (Media3 @UnstableApi opt-in, unused seek increments/colours)
 - Gradle project scaffold (settings/build/gradle.properties/libs.versions.toml/wrapper 8.7), app module, scripts/env.sh

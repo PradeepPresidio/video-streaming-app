@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ReelBox</string>
+    <string name="company_name" translatable="false">NMM Softwares</string>
 </resources>

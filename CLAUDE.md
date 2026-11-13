@@ -20,6 +20,7 @@ An offline Android video app with Netflix/Hotstar-style features, using original
 - Lint: `./gradlew lintDebug`
 - Instrumented tests (on phone): `./gradlew connectedDebugAndroidTest`
 - Install: `adb install -r app/build/outputs/apk/debug/app-debug.apk`
+- Release (signed): `./gradlew assembleRelease` -> `app/build/outputs/apk/release/app-release.apk`, package `com.nmmsoftwares.reelbox`. Needs `keystore.properties` + `keystore/reelbox-release.jks` (gitignored, never commit); without them the release APK is unsigned.
 
 ## Device
 - Exactly one Android phone is attached over USB debugging and is the only entry in `adb devices`. No `-s` flag needed.
