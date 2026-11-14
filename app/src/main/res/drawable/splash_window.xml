@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 5.0–5.1 launch window: brand background only (layer-list item sizing needs API 23, see drawable-v23).
+     The in-app splash with the logo follows immediately. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/rb_background"/>
-    <item android:drawable="@drawable/ic_launcher_foreground" android:gravity="center"
-        android:width="160dp" android:height="160dp"/>
 </layer-list>

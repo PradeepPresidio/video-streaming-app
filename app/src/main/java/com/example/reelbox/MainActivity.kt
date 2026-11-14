@@ -4,6 +4,7 @@ import android.app.PictureInPictureParams
 import android.content.pm.ActivityInfo
 import android.util.Rational
 import android.view.KeyEvent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
@@ -57,7 +58,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (pipEnabled && !isInPictureInPictureMode) {
+        // Picture-in-picture exists from Android 8.0; older versions simply leave the player (it pauses on stop).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && pipEnabled && !isInPictureInPictureMode) {
             enterPictureInPictureMode(
                 PictureInPictureParams.Builder().setAspectRatio(Rational(16, 9)).build(),
             )

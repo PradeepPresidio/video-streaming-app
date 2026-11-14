@@ -129,12 +129,14 @@ class PlayerViewModel(
         if (local && localVideo == null) Log.w(TAG, "no downloaded copy of $mediaId, using the bundled one")
         val videoUri = localVideo?.let { Uri.fromFile(it).toString() } ?: AssetUris.media(media.video)
         val builder = MediaItem.Builder().setUri(videoUri).setMediaId(mediaId)
+        // No setLabel(): the label is never shown (subtitles are picked by language "en"), and in Media3 1.3.1 a
+        // labelled track makes Format call List.stream(), which doesn't exist before Android 7.0 (NoSuchMethodError).
         media.subtitles?.let { srt ->
             val srtUri = localVideo?.let { downloads.localSubtitles(mediaId) }?.let(Uri::fromFile) ?: Uri.parse(AssetUris.media(srt))
             builder.setSubtitleConfigurations(
                 listOf(
                     MediaItem.SubtitleConfiguration.Builder(srtUri)
-                        .setMimeType(MimeTypes.APPLICATION_SUBRIP).setLanguage("en").setLabel("English")
+                        .setMimeType(MimeTypes.APPLICATION_SUBRIP).setLanguage("en")
                         .setSelectionFlags(C.SELECTION_FLAG_DEFAULT).build(),
                 ),
             )

@@ -12,7 +12,7 @@ movies and series episodes in a full-featured player. It has Continue Watching, 
 ## 2. Constraints
 - **Language / UI:** Kotlin + Jetpack Compose (Material 3), single activity, MVVM, Navigation Compose
 - **Libraries:** AndroidX Media3 (ExoPlayer + UI), Room, DataStore, Coil, Kotlin Coroutines/Flow, WorkManager (downloads). No others without asking.
-- **SDK:** minSdk 26; compile/target the latest stable SDK installed on this machine
+- **SDK:** minSdk 21 (changed from 26 at the owner's request, 2026-11-15: support older Android versions); compile/target the latest stable SDK installed on this machine
 - **applicationId:** `com.example.reelbox`
 - **Project:** create it from scratch if it doesn't exist: Gradle wrapper, Kotlin DSL, version catalog
 - **Branding:** use an original name ("ReelBox"), logo, colors and artwork. Copy layout and features, **never** Netflix or Hotstar names, logos, fonts or assets.

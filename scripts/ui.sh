@@ -11,7 +11,7 @@ XML="$ROOT/verification/ui.xml"
 mkdir -p "$ROOT/verification"
 dump() {
   for _ in 1 2 3; do
-    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb pull /sdcard/ui.xml "$XML" >/dev/null 2>&1 && return 0
+    adb shell uiautomator dump /data/local/tmp/ui.xml >/dev/null 2>&1 && adb pull /data/local/tmp/ui.xml "$XML" >/dev/null 2>&1 && return 0
     sleep 1
   done
   echo "uiautomator dump failed" >&2; return 1

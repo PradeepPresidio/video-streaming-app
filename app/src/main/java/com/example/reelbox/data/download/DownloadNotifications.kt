@@ -1,25 +1,27 @@
 package com.example.reelbox.data.download
 
 import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.example.reelbox.MainActivity
 import com.example.reelbox.R
 
 object DownloadNotifications {
     const val CHANNEL_ID = "downloads"
 
+    /** Creates the channel on Android 8.0+; a no-op on older versions, which have no channels. */
     fun ensureChannel(context: Context) {
-        val nm = context.getSystemService(NotificationManager::class.java)
-        if (nm.getNotificationChannel(CHANNEL_ID) == null) {
+        val nm = NotificationManagerCompat.from(context)
+        if (nm.getNotificationChannelCompat(CHANNEL_ID) == null) {
             nm.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "Downloads", NotificationManager.IMPORTANCE_LOW).apply {
-                    description = "Progress of titles being downloaded for offline viewing"
-                },
+                NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
+                    .setName("Downloads")
+                    .setDescription("Progress of titles being downloaded for offline viewing")
+                    .build(),
             )
         }
     }

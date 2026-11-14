@@ -10,7 +10,7 @@ An offline Android video app with Netflix/Hotstar-style features, using original
 - applicationId: `com.example.reelbox`
 - Launcher activity: `com.example.reelbox/.MainActivity`
 - Debug APK: `app/build/outputs/apk/debug/app-debug.apk`
-- Min SDK 26 / Target: latest stable SDK installed
+- Min SDK 21 (Android 5.0; lowered from 26 on 2026-11-15, see PROGRESS.md) / Target: latest stable SDK installed
 - Media: `bash tools/prepare_media.sh` generates `app/src/main/assets/media/` (gitignored), plus `catalog.json` (committed)
 - If the Gradle project doesn't exist yet, create it first (requirements.md R0).
 

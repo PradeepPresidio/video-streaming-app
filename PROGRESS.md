@@ -47,6 +47,21 @@ Test commands:
 - "NMM Softwares" (string `company_name`): splash bottom shows "from / NMM Softwares" (`splash:company`); Profile tab bottom shows it (`profile:company`).
 - On device (release install): verification/release/splash.png, profile.png, playing.png. Sintel download done (7817253 B), playback `play Sintel uri=asset:///media/sintel.mp4`, no FATAL/ANR. Debug: unit tests, lintDebug 0 errors, connectedDebugAndroidTest 8/8.
 
+## Older Android support: minSdk 26 -> 21 (2026-11-15)
+API 21 (Android 5.0) is the lowest version Compose supports. Behaviour on Android 8.0+ is unchanged.
+- **Notification channel:** `DownloadNotifications.ensureChannel` uses NotificationManagerCompat/NotificationChannelCompat. It creates the channel on 8.0+ and is a no-op below.
+- **Picture-in-picture:** enter PiP only on API 26+ (`MainActivity.onUserLeaveHint`). `PlayerScreen` reads PiP state via `inPipMode` (API 24+, else false). Below 8.0, Home pauses the player as on stop.
+- **Launcher icon:** legacy PNGs in `mipmap-{m..xxxh}dpi/ic_launcher.png`, rendered by `java tools/LegacyIcon.java app/src/main/res` from the vector logo. 8.0+ still uses the adaptive icon. Removed `roundIcon`, which pointed at the same adaptive icon; this avoids a square 'round' icon on 7.1.
+- **Splash window:** `drawable/splash_window.xml` is plain background (5.0–5.1, where layer-list item sizing isn't supported); the logo version moved to `drawable-v23/`.
+- **Media3 1.3.1 crash on API < 24:** `Format` calls `List.stream()` when a track has a label, which gave a NoSuchMethodError on the playback thread. A scan of all Media3 1.3.1 jars found `Format` is the only class using java.util.stream/function/Optional/time. Fix: don't `setLabel("English")` on the subtitle config. The label was never shown; subtitles are selected by language "en".
+- `scripts/ui.sh` dumps to /data/local/tmp (Android 5's /sdcard symlink can't be adb-pulled).
+- **Lint:** 0 errors, no NewApi. The remaining UnusedAttribute warnings (supportsPictureInPicture/resizeableActivity) are ignored by older versions.
+- **Verified:**
+  - **Android 5.0.2 emulator (API 21, verification/api21/):** release build launches, splash with NMM Softwares, profile picker, Home, Details, download done (7827622 B), no crash after the fix. Video doesn't advance there: the arm64 API-21 emulator's OMX.google.h264.decoder outputs no frames, even for a Baseline re-encode. This is an emulator image limitation.
+  - **Android 6.0 emulator (API 23, verification/api23/):** the same Main-profile clips play (pos 11020 -> 12016), subtitles show, the download notification posts without a channel, the legacy launcher icon shows, Home pauses playback. connectedDebugAndroidTest 8/8 on API 23.
+  - **Build checks:** unit tests pass; the release APK has sdkVersion 21 and is signed CN=NMM Softwares.
+- **Pending:** regression run on the Android 13 phone (not connected at the time).
+
 ## Modified files
 - R9: domain/DownloadRules.kt (+test), data/db (DownloadEntity/DownloadDao, DB v2 AutoMigration, app/schemas/2.json), data/download/{DownloadWorker,DownloadRepository,DownloadStorage,DownloadLocks,DownloadNotifications}.kt, res/drawable/ic_stat_download.xml, AndroidManifest (FGS dataSync, POST_NOTIFICATIONS, SystemForegroundService), ui/components/DownloadButton.kt, ui/details (download state, Download all, per-episode buttons), ui/downloads/DownloadsScreen.kt (+VM), player plays file:// copy when opened from Downloads (`local` arg), Settings delete-all via repository, ReelBoxFlowsTest (+2 tests), lint fixes (Media3 @UnstableApi opt-in, unused seek increments/colours)
 - Gradle project scaffold (settings/build/gradle.properties/libs.versions.toml/wrapper 8.7), app module, scripts/env.sh

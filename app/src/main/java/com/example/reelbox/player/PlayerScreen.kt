@@ -1,6 +1,7 @@
 package com.example.reelbox.player
 
 import android.app.Activity
+import android.os.Build
 import android.content.pm.ActivityInfo
 import android.view.KeyEvent
 import android.view.ViewGroup
@@ -374,7 +375,7 @@ private fun MediaKeys(vm: PlayerViewModel) {
 @Composable
 private fun rememberIsInPipMode(): Boolean {
     val activity = LocalContext.current as ComponentActivity
-    var inPip by remember { mutableStateOf(activity.isInPictureInPictureMode) }
+    var inPip by remember { mutableStateOf(activity.inPipMode) }
     DisposableEffect(activity) {
         val listener = Consumer<PictureInPictureModeChangedInfo> { inPip = it.isInPictureInPictureMode }
         activity.addOnPictureInPictureModeChangedListener(listener)
@@ -392,7 +393,7 @@ private fun PauseWhenStopped(vm: PlayerViewModel) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) {
                 vm.rememberPosition()
-                if (!activity.isInPictureInPictureMode) vm.pause()
+                if (!activity.inPipMode) vm.pause()
             }
         }
         // Closing the PiP window stops the activity while it may still report PiP mode; pause once PiP ends.
@@ -407,3 +408,7 @@ private fun PauseWhenStopped(vm: PlayerViewModel) {
         }
     }
 }
+
+/** Activity.isInPictureInPictureMode needs API 24; before that there is no PiP. */
+private val Activity.inPipMode: Boolean
+    get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode
